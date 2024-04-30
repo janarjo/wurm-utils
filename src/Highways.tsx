@@ -12,14 +12,16 @@ import {
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { Link as ChakraLink } from '@chakra-ui/react'
-import { useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { HighwayCost, calcHighwayCost } from './util/Highways'
-import { ItemCode } from './util/Domain'
+import { ItemCode, Point } from './Domain'
+import PointInput from './common/PointInput'
 
 export default function Highways() {
   const [ cost, setCost ] = useState<HighwayCost | null>(null)
+  const [ points, setPoints ] = useState<Point[]>([])
 
-  const onSubmit = useMemo(() => (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.target as HTMLFormElement)
     const length = Number(formData.get('length'))
@@ -29,11 +31,20 @@ export default function Highways() {
     setCost(cost)
   }, [setCost])
 
+  const onReset = useCallback(() => {
+    setCost(null)
+    setPoints([])
+  }, [])
+
   return (
     <Box padding={8} maxWidth={600}>
       <Heading as='h3' size={'lg'} marginBottom={8}>Highway Cost Calculator</Heading>
       <Box as='form' name='highwayCost' onSubmit={onSubmit} marginBottom={8}>
         <SimpleGrid columns={2} gap={4} marginBottom={4}>
+          <FormControl>
+            <FormLabel>Highway points</FormLabel>
+            <PointInput initialPoints={points} name='points'/>
+          </FormControl>
           <FormControl isRequired>
             <FormLabel>Highway length</FormLabel>
             <Input name='length' type='number' placeholder='Length' required />
@@ -45,7 +56,7 @@ export default function Highways() {
           <Checkbox name='sandLining' value='sandLining'>Line with sand</Checkbox>
         </SimpleGrid>
         <Button type='submit'>Calculate</Button>
-        <Button type='reset' onClick={() => setCost(null)} marginLeft={4}>Reset</Button>
+        <Button type='reset' onClick={onReset} marginLeft={4}>Reset</Button>
       </Box>
       {cost && (
         <Box marginBottom={8}>

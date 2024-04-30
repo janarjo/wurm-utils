@@ -1,4 +1,4 @@
-import { ItemCode } from './Domain'
+import { ItemCode } from '../Domain'
 
 export interface HighwayCost {
     amounts: Map<ItemCode, number>

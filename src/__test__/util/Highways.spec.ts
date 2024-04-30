@@ -1,4 +1,4 @@
-import { ItemCode } from '../../util/Domain'
+import { ItemCode } from '../../Domain'
 import { calcHighwayCost } from '../../util/Highways'
 
 describe('Road costs', () => {
