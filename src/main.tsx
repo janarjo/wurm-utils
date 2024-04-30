@@ -12,7 +12,7 @@ import Highways from './Highways.tsx'
 const router = createBrowserRouter([
   { path: '/', element: <Root /> },
   { path: '/highways', element: <Highways /> },
-])
+], { basename: '/wurm-utils' })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
