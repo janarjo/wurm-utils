@@ -53,18 +53,27 @@ export default function PointInput({
     if (value !== undefined) setY(value)
   }, [])
 
+  const onEnter = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      onAdd([x, y])
+    }
+  }, [x, y, onAdd])
+
   return (
     <SimpleGrid columns={3} gap={4}>
       <Input
         type='text'
         required
         value={x}
+        onKeyDown={onEnter}
         onChange={onChangeX}
         onPaste={onPaste}/>
       <Input
         type='text'
         required
         value={y}
+        onKeyDown={onEnter}
         onChange={onChangeY}
         onPaste={onPaste}/>
       <Button onClick={() => onAdd([x, y])}>Add</Button>
