@@ -1,4 +1,5 @@
 export type Point = readonly [number, number]
+export type Line = readonly [Point, Point]
 
 export enum ItemCode {
     STONE_SHARD = 'STONE_SHARD',

@@ -1,34 +1,45 @@
-import { ItemCode } from '../../Domain'
+import { ItemCode, Line } from '../../Domain'
 import { calcHighwayCost } from '../../util/Highways'
 
-describe('Road costs', () => {
+describe('Highway costs', () => {
 
-  it('calculates road cost correctly', () => {
-    expect(calcHighwayCost(100)).toEqual({
+  it('calculates single segment cost correctly', () => {
+    const segments: Line[] = [[[0, 0], [0, 10]],]
+    expect(calcHighwayCost(segments, 2)).toEqual({
+      length: 10,
       amounts: new Map([
-        ['STONE_BRICK', 200],
+        ['STONE_BRICK', 20],
         ['PILE_OF_SAND', 0],
-        ['CATSEYE', 100]
-      ])
-    })
-  })
-
-  it('calculates road cost correctly with width', () => {
-    expect(calcHighwayCost(100, 4)).toEqual({
-      amounts: new Map([
-        ['STONE_BRICK', 400],
-        ['PILE_OF_SAND', 0],
-        ['CATSEYE', 100]
+        ['CATSEYE', 10]
       ])
     })
   })
 
   it('calculates road cost correctly with sand lining', () => {
-    expect(calcHighwayCost(100, 1, ItemCode.STONE_BRICK, true)).toEqual({
+    const segments: Line[] = [[[0, 0], [0, 10]]]
+    expect(calcHighwayCost(segments, 1, ItemCode.STONE_BRICK, true)).toEqual({
+      length: 10,
       amounts: new Map([
-        ['STONE_BRICK', 100],
-        ['PILE_OF_SAND', 200],
-        ['CATSEYE', 100]
+        ['STONE_BRICK', 10],
+        ['PILE_OF_SAND', 20],
+        ['CATSEYE', 10]
+      ])
+    })
+  })
+
+  it('calculates road cost with multiple segments correctly', () => {
+    const segments: Line[] = [
+      [[0, 0], [0, 10]],
+      [[0, 10], [10, 10]],
+      [[10, 10], [10, 0]],
+    ]
+
+    expect(calcHighwayCost(segments, 1)).toEqual({
+      length: 30,
+      amounts: new Map([
+        ['STONE_BRICK', 30],
+        ['PILE_OF_SAND', 0],
+        ['CATSEYE', 30]
       ])
     })
   })

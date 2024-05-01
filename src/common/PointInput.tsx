@@ -11,19 +11,26 @@ import { Point } from '../Domain'
 
 export interface PointInputProps {
   name: string,
-  initialPoints: Point[],
+  points: Point[],
+  initialPoint: Point,
+  onAdd: (point: Point) => void,
+  onRemove: (index: number) => void,
 }
 
-export default function PointInput({ name, initialPoints }: PointInputProps) {
-  const [ points, setPoints ] = useState<Point[]>([])
+export default function PointInput({
+  name,
+  points,
+  initialPoint,
+  onAdd,
+  onRemove,
+}: PointInputProps) {
   const [ x, setX ] = useState<number>(0)
   const [ y, setY ] = useState<number>(0)
 
   useEffect(() => {
-    setPoints(initialPoints)
-    setX(0)
-    setY(0)
-  }, [initialPoints])
+    setX(initialPoint[0])
+    setY(initialPoint[1])
+  }, [initialPoint])
 
   const onPaste = useCallback((event: React.ClipboardEvent<HTMLInputElement>) => {
     const text = event.clipboardData.getData('text')
@@ -36,32 +43,31 @@ export default function PointInput({ name, initialPoints }: PointInputProps) {
     setY(y)
   }, [])
 
-  const onAdd = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    setPoints([...points, [x, y]])
-  }, [points, x, y])
+  const onChangeX = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = toNumber(event.target.value)
+    if (value !== undefined) setX(value)
+  }, [])
 
-  const onRemove = useCallback((index: number) => {
-    setPoints(points.filter((_, i) => i !== index))
-  }, [points])
+  const onChangeY = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = toNumber(event.target.value)
+    if (value !== undefined) setY(value)
+  }, [])
 
   return (
     <SimpleGrid columns={3} gap={4}>
       <Input
-        type='number'
-        placeholder='x'
+        type='text'
         required
         value={x}
-        onChange={event => setX(Number(event.target.value))}
+        onChange={onChangeX}
         onPaste={onPaste}/>
       <Input
-        type='number'
-        placeholder='y'
+        type='text'
         required
         value={y}
-        onChange={event => setY(Number(event.target.value))}
+        onChange={onChangeY}
         onPaste={onPaste}/>
-      <Button onClick={onAdd}>Add</Button>
+      <Button onClick={() => onAdd([x, y])}>Add</Button>
       {points.length > 0 && (
         <Flex gridColumn='span 3' gap={2} flexWrap={'wrap'}>
           {points.map(([x, y], index) => (
@@ -78,7 +84,23 @@ export default function PointInput({ name, initialPoints }: PointInputProps) {
         name={name}
         type='text'
         hidden
+        readOnly
         value={points.map(([x, y]) => `${x},${y}`).join(';')}/>
     </SimpleGrid>
   )
+}
+
+const toNumber = (value: string) => {
+  if (value.length > 0 && !value.match(/^\d+$/)) return
+
+  let number: number
+  if (value.length === 0) {
+    number = 0
+  } else if (value.length > 1 && value.startsWith('0')) {
+    number = Number(value.slice(1))
+  } else {
+    number = Number(value)
+  }
+
+  return number
 }
