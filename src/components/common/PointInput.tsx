@@ -1,28 +1,17 @@
-import {
-  Button,
-  Flex,
-  Input,
-  SimpleGrid,
-  Tag,
-  TagCloseButton,
-  TagLabel } from '@chakra-ui/react'
+import { Button, ChakraProps, SimpleGrid } from '@chakra-ui/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Point } from '../../Domain'
+import NumberInput from './NumberInput'
 
-export interface PointInputProps {
-  name: string,
-  points: Point[],
-  initialPoint: Point,
-  onAdd: (point: Point) => void,
-  onRemove: (index: number) => void,
+export interface PointInputProps extends ChakraProps {
+    initialPoint: Point,
+    onAdd?: (point: Point) => void,
 }
 
 export default function PointInput({
-  name,
-  points,
   initialPoint,
   onAdd,
-  onRemove,
+  ...rest
 }: PointInputProps) {
   const [ x, setX ] = useState<number>(0)
   const [ y, setY ] = useState<number>(0)
@@ -54,6 +43,7 @@ export default function PointInput({
   }, [])
 
   const onEnter = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!onAdd) return
     if (event.key === 'Enter') {
       event.preventDefault()
       onAdd([x, y])
@@ -61,40 +51,22 @@ export default function PointInput({
   }, [x, y, onAdd])
 
   return (
-    <SimpleGrid columns={3} gap={4}>
-      <Input
-        type='text'
+    <SimpleGrid {...rest} columns={onAdd ? 3 : 2} gap={4}>
+      <NumberInput
         required
         value={x}
         onKeyDown={onEnter}
         onChange={onChangeX}
         onPaste={onPaste}/>
-      <Input
-        type='text'
+      <NumberInput
         required
         value={y}
         onKeyDown={onEnter}
         onChange={onChangeY}
         onPaste={onPaste}/>
-      <Button onClick={() => onAdd([x, y])}>Add</Button>
-      {points.length > 0 && (
-        <Flex gridColumn='span 3' gap={2} flexWrap={'wrap'}>
-          {points.map(([x, y], index) => (
-            <Flex key={index} gap={0.5}>
-              <Tag size='md' borderRadius='full' variant='solid' colorScheme='blue'>
-                <TagLabel>{x}, {y}</TagLabel>
-                <TagCloseButton onClick={() => onRemove(index)} />
-              </Tag>
-            </Flex>
-          ))}
-        </Flex>
+      {onAdd && (
+        <Button onClick={() => onAdd([x, y])}>Add</Button>
       )}
-      <input
-        name={name}
-        type='text'
-        hidden
-        readOnly
-        value={points.map(([x, y]) => `${x},${y}`).join(';')}/>
     </SimpleGrid>
   )
 }

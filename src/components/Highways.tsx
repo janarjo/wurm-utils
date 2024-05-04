@@ -18,7 +18,7 @@ import { Link as ChakraLink } from '@chakra-ui/react'
 import { useCallback, useState } from 'react'
 import { HighwayCost, calcHighwayCost } from '../util/Highways'
 import { ItemCode, Point } from '../Domain'
-import PointInput from './common/PointInput'
+import PointsInput from './common/PointsInput'
 import { calcSegments } from '../util/Common'
 
 export default function Highways() {
@@ -77,7 +77,7 @@ export default function Highways() {
         <SimpleGrid columns={2} gap={4} marginBottom={4}>
           <FormControl isInvalid={!!fieldErrors.points}>
             <FormLabel>Highway points</FormLabel>
-            <PointInput
+            <PointsInput
               name='points'
               points={points}
               initialPoint={initialPoint}
@@ -117,7 +117,7 @@ export default function Highways() {
           </CardBody>
         </Card>
       )}
-      <ChakraLink as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
+      <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
     </Box>
   )
 }
