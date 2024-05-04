@@ -80,7 +80,6 @@ export default function Treasures() {
                 colorScheme={index === editIndex ? 'gray' : index === 0 ? 'red' : 'blue'}
                 cursor={'pointer'}
                 onClick={() => {
-                  console.log('Edit', index)
                   setEditIndex(index)
                   onEditOpen()
                 }}>
