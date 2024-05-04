@@ -16,10 +16,10 @@ import {
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { Link as ChakraLink } from '@chakra-ui/react'
 import { useCallback, useState } from 'react'
-import { HighwayCost, calcHighwayCost } from './util/Highways'
-import { ItemCode, Point } from './Domain'
+import { HighwayCost, calcHighwayCost } from '../util/Highways'
+import { ItemCode, Point } from '../Domain'
 import PointInput from './common/PointInput'
-import { calcSegments } from './util/Common'
+import { calcSegments } from '../util/Common'
 
 export default function Highways() {
   const [ cost, setCost ] = useState<HighwayCost | null>(null)
@@ -72,7 +72,7 @@ export default function Highways() {
 
   return (
     <Box padding={8} maxWidth={600}>
-      <Heading as='h3' size={'lg'} marginBottom={8}>Highway Cost Calculator</Heading>
+      <Heading as='h3' size={'lg'} marginBottom={8}>Highway Calculator</Heading>
       <Box as='form' name='highwayCost' onSubmit={onSubmit} marginBottom={8}>
         <SimpleGrid columns={2} gap={4} marginBottom={4}>
           <FormControl isInvalid={!!fieldErrors.points}>

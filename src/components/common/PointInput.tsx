@@ -7,7 +7,7 @@ import {
   TagCloseButton,
   TagLabel } from '@chakra-ui/react'
 import { useCallback, useEffect, useState } from 'react'
-import { Point } from '../Domain'
+import { Point } from '../../Domain'
 
 export interface PointInputProps {
   name: string,

@@ -5,13 +5,15 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from 'react-router-dom'
-import Root from './Root.tsx'
-import Highways from './Highways.tsx'
+import Root from './components/Root.tsx'
+import Highways from './components/Highways.tsx'
+import Treasures from './components/Treasures.tsx'
 
 
 const router = createBrowserRouter([
   { path: '/', element: <Root /> },
   { path: '/highways', element: <Highways /> },
+  { path: '/treasures', element: <Treasures /> },
 ], { basename: '/wurm-utils' })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
