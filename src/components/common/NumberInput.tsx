@@ -48,7 +48,6 @@ export default function NumberInput({
 const toNumeric = (
   value: string,
   opts: ConversionOptions = { allowNegative: true, allowDecimal: true }) => {
-  const orig = value
   const { allowNegative, allowDecimal } = opts
 
   if (value === '0-') value = '-'
@@ -71,6 +70,5 @@ const toNumeric = (
     }
   }
 
-  console.log(`Converted ${orig} to ${value}`)
   return value
 }
