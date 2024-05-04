@@ -18,6 +18,7 @@ import {
   TagLabel,
   Text,
   Textarea,
+  Tooltip,
   useDisclosure
 } from '@chakra-ui/react'
 import { Form, Link as ReactRouterLink } from 'react-router-dom'
@@ -69,24 +70,26 @@ export default function Treasures() {
           onEditClose()
         }}/>
       <List marginBottom={8}>
-        {locations.map(({ point, grid, quality }, index) => (
+        {locations.map(({ point, grid, quality, notes }, index) => (
           <ListItem key={index} marginBottom={2}>
-            <Tag
-              size='lg'
-              borderRadius='full'
-              variant='solid'
-              colorScheme='blue'
-              cursor={'pointer'}
-              onClick={() => {
-                console.log('Edit', index)
-                setEditIndex(index)
-                onEditOpen()
-              }}>
-              <TagLabel>
+            <Tooltip label={notes}>
+              <Tag
+                size='lg'
+                borderRadius='full'
+                variant='solid'
+                colorScheme={index === editIndex ? 'gray' : index === 0 ? 'red' : 'blue'}
+                cursor={'pointer'}
+                onClick={() => {
+                  console.log('Edit', index)
+                  setEditIndex(index)
+                  onEditOpen()
+                }}>
+                <TagLabel>
                 ({point[0]}, {point[1]})
-                {grid && ` - ${grid}`}
-                {quality && ` Ql: ${quality}`}</TagLabel>
-            </Tag>
+                  {grid && ` - ${grid}`}
+                  {quality && ` Ql: ${quality}`}</TagLabel>
+              </Tag>
+            </Tooltip>
           </ListItem>
         ))}
       </List>
