@@ -1,7 +1,7 @@
 import {
   Input,
   InputProps } from '@chakra-ui/react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export interface ConversionOptions {
     allowNegative?: boolean
@@ -9,18 +9,24 @@ export interface ConversionOptions {
 }
 
 export interface NumberInputProps extends InputProps, ConversionOptions {
-  value?: string,
+  value?: string | number,
+  required?: boolean,
 }
 
 export default function NumberInput({
   value: initialValue = '0',
+  required,
   onChange,
   allowNegative,
   allowDecimal,
   ...rest }: NumberInputProps) {
-  const [ value, setValue ] = useState<string>(initialValue)
+  const [ value, setValue ] = useState<string>(initialValue.toString())
 
   if (!onChange) onChange = (event) => setValue(event.target.value)
+
+  useEffect(() => {
+    setValue(initialValue.toString())
+  }, [initialValue])
 
   const opts = useMemo(() => ({ allowNegative, allowDecimal }), [allowNegative, allowDecimal])
   const onNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +40,8 @@ export default function NumberInput({
       {...rest}
       type='text'
       value={value}
-      onChange={onNumberChange}/>
+      onChange={onNumberChange}
+      required={required}/>
   )
 }
 
