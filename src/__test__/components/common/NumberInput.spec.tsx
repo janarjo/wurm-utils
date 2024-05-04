@@ -15,7 +15,7 @@ describe('NumberInput (default)', () => {
   it('should render', () => {
     const { input } = setup()
     expect(input).toBeVisible()
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 
   it('should accept numbers', () => {
@@ -27,19 +27,19 @@ describe('NumberInput (default)', () => {
   it('should not accept letters', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: 'abc' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 
   it('should not accept negative numbers', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: '-10' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 
   it('should not accept decimals', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: '10.5' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 })
 
@@ -68,13 +68,13 @@ describe('NumberInput (allowNegative)', () => {
   it('should not accept negative decimals', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: '-10.5' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 
   it('should not accept minus sign in the middle of the number', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: '1-0' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 })
 
@@ -97,7 +97,7 @@ describe('NumberInput (allowDecimal)', () => {
   it('should not accept negative decimals', () => {
     const { input } = setup()
     fireEvent.change(input, { target: { value: '-10.5' } })
-    expect(input).toHaveValue('0')
+    expect(input).toHaveValue('')
   })
 })
 

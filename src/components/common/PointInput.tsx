@@ -33,13 +33,13 @@ export default function PointInput({
   }, [])
 
   const onChangeX = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = toNumber(event.target.value)
-    if (value !== undefined) setX(value)
+    const value = Number(event.target.value)
+    if (!isNaN(value)) setX(value)
   }, [])
 
   const onChangeY = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = toNumber(event.target.value)
-    if (value !== undefined) setY(value)
+    const value = Number(event.target.value)
+    if (!isNaN(value)) setY(value)
   }, [])
 
   const onEnter = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -71,17 +71,3 @@ export default function PointInput({
   )
 }
 
-const toNumber = (value: string) => {
-  if (value.length > 0 && !value.match(/^\d+$/)) return
-
-  let number: number
-  if (value.length === 0) {
-    number = 0
-  } else if (value.length > 1 && value.startsWith('0')) {
-    number = Number(value.slice(1))
-  } else {
-    number = Number(value)
-  }
-
-  return number
-}

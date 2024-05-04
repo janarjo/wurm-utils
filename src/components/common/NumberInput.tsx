@@ -14,7 +14,7 @@ export interface NumberInputProps extends InputProps, ConversionOptions {
 }
 
 export default function NumberInput({
-  value: initialValue = '0',
+  value: initialValue = '',
   required,
   onChange,
   allowNegative,
@@ -30,9 +30,9 @@ export default function NumberInput({
 
   const opts = useMemo(() => ({ allowNegative, allowDecimal }), [allowNegative, allowDecimal])
   const onNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = toNumeric(event.target.value, opts) || value
-    setValue(newValue)
+    const newValue = toNumeric(event.target.value, opts) || value || ''
     onChange({ ...event, target: { ...event.target, value: newValue } })
+    setValue(newValue)
   }, [onChange, value, opts])
 
   return (
