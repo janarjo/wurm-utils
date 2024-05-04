@@ -51,6 +51,7 @@ const toNumeric = (
   const { allowNegative, allowDecimal } = opts
 
   if (value === '0-') value = '-'
+  value = value.replace(',', '.')
 
   const regex = new RegExp(
     `^${allowNegative ? '-?' : ''}(?:\\d+${allowDecimal ? '(\\.\\d*)?' : ''}|)$`)

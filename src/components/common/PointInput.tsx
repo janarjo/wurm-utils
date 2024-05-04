@@ -4,7 +4,7 @@ import { Point } from '../../Domain'
 import NumberInput from './NumberInput'
 
 export interface PointInputProps extends ChakraProps {
-    initialPoint: Point,
+    initialPoint?: Point,
     onAdd?: (point: Point) => void,
 }
 
@@ -13,10 +13,11 @@ export default function PointInput({
   onAdd,
   ...rest
 }: PointInputProps) {
-  const [ x, setX ] = useState<number>(0)
-  const [ y, setY ] = useState<number>(0)
+  const [ x, setX ] = useState<number | undefined>()
+  const [ y, setY ] = useState<number | undefined>()
 
   useEffect(() => {
+    if (!initialPoint) return
     setX(initialPoint[0])
     setY(initialPoint[1])
   }, [initialPoint])
@@ -46,26 +47,28 @@ export default function PointInput({
     if (!onAdd) return
     if (event.key === 'Enter') {
       event.preventDefault()
-      onAdd([x, y])
+      onAdd([x ?? 0, y ?? 0])
     }
   }, [x, y, onAdd])
 
   return (
     <SimpleGrid {...rest} columns={onAdd ? 3 : 2} gap={4}>
       <NumberInput
+        name='x'
         required
         value={x}
         onKeyDown={onEnter}
         onChange={onChangeX}
         onPaste={onPaste}/>
       <NumberInput
+        name='y'
         required
         value={y}
         onKeyDown={onEnter}
         onChange={onChangeY}
         onPaste={onPaste}/>
       {onAdd && (
-        <Button onClick={() => onAdd([x, y])}>Add</Button>
+        <Button onClick={() => onAdd([x ?? 0, y ?? 0])}>Add</Button>
       )}
     </SimpleGrid>
   )
