@@ -5,8 +5,6 @@ import {
   FormLabel,
   Heading,
   Input,
-  List,
-  ListItem,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -14,11 +12,16 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Tag,
-  TagLabel,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
   Text,
   Textarea,
+  Th,
+  Thead,
   Tooltip,
+  Tr,
   useDisclosure
 } from '@chakra-ui/react'
 import { Form, Link as ReactRouterLink } from 'react-router-dom'
@@ -28,6 +31,7 @@ import { Location } from '../util/Treasures'
 import { Point } from '../Domain'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
+import { calcDistance } from '../util/Common'
 
 export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
@@ -57,7 +61,7 @@ export default function Treasures() {
   }, [locations, onEditClose])
 
   return (
-    <Box padding={8} maxWidth={600}>
+    <Box padding={8} maxWidth={800}>
       <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
       <Box marginBottom={4}>
         <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
@@ -81,10 +85,15 @@ export default function Treasures() {
         onClick={onAddOpen}
         isDisabled={!currLocation}
         marginBottom={4}>
-          Add Treasure Map
+          Add Map
       </Button>
-      <LocationModal isOpen={isAddOpen} onSave={onAdd} onClose={onAddClose} />
       <LocationModal
+        currLocation={currLocation ?? [0, 0]}
+        isOpen={isAddOpen}
+        onSave={onAdd}
+        onClose={onAddClose} />
+      <LocationModal
+        currLocation={currLocation ?? [0, 0]}
         isOpen={isEditOpen}
         location={editIndex !== undefined ? locations[editIndex] : undefined}
         onSave={(location) => onEdit(location, editIndex)}
@@ -93,35 +102,57 @@ export default function Treasures() {
           setEditIndex(undefined)
           onEditClose()
         }}/>
-      <List marginBottom={8}>
-        {locations.map(({ point, grid, quality, notes }, index) => (
-          <ListItem key={index} marginBottom={2}>
-            <Tooltip label={notes}>
-              <Tag
-                size='lg'
-                borderRadius='full'
-                variant='solid'
-                colorScheme={index === editIndex ? 'gray' : index === 0 ? 'red' : 'blue'}
-                cursor={'pointer'}
-                onClick={() => {
-                  setEditIndex(index)
-                  onEditOpen()
-                }}>
-                <TagLabel>
-                ({point[0]}, {point[1]})
-                  {grid && ` - ${grid}`}
-                  {quality && ` Ql: ${quality}`}</TagLabel>
-              </Tag>
-            </Tooltip>
-          </ListItem>
-        ))}
-      </List>
+      <TableContainer marginBottom={8}>
+        <Table variant='simple' size='sm'>
+          <Thead>
+            <Tr>
+              <Th>Location (x, y)</Th>
+              <Th>Quality</Th>
+              <Th>Distance</Th>
+              <Th>Notes</Th>
+              <Th></Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {locations.map(({ point, distance, grid, quality, notes }, index) => (
+              <Tr key={index}>
+                <Td>({point[0]}, {point[1]}) {grid && ` - ${grid}`}</Td>
+                <Td>{quality}</Td>
+                <Td>{distance.toFixed(0)}</Td>
+                <Td maxWidth={150}>
+                  <Tooltip label={notes}><Text noOfLines={1}>{notes}</Text>
+                  </Tooltip>
+                </Td>
+                <Td>
+                  <Button
+                    size={'sm'}
+                    colorScheme='blue'
+                    onClick={() => {
+                      setEditIndex(index)
+                      onEditOpen()
+                    }}>
+                      Edit
+                  </Button>
+                  <Button
+                    size={'sm'}
+                    colorScheme='red'
+                    marginLeft={2}
+                    onClick={() => onDelete(index)}>
+                      Delete
+                  </Button>
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
       <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
     </Box>
   )
 }
 
 export interface LocationModalProps {
+    currLocation: Point,
     isOpen: boolean,
     location?: Location,
     onSave: (point: Location) => void,
@@ -129,17 +160,24 @@ export interface LocationModalProps {
     onDelete?: () => void
 }
 
-function LocationModal({ isOpen, location, onSave, onClose, onDelete }: LocationModalProps) {
+function LocationModal({
+  currLocation,
+  isOpen,
+  location,
+  onSave,
+  onClose
+}: LocationModalProps) {
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const point = [Number(formData.get('x')), Number(formData.get('y'))] as Point
+    const distance = calcDistance(currLocation, point)
     const grid = formData.get('grid') as string
     const quality = Number(formData.get('quality')) || undefined
     const notes = formData.get('notes') as string
-    onSave({ point, grid, quality, notes })
+    onSave({ point, distance, grid, quality, notes })
     onClose()
-  }, [onSave, onClose])
+  }, [currLocation, onSave, onClose])
 
   return (
     <Modal size='sm' isOpen={isOpen} onClose={onClose}>
@@ -167,14 +205,9 @@ function LocationModal({ isOpen, location, onSave, onClose, onDelete }: Location
               <Textarea name='notes' defaultValue={location?.notes} placeholder='Notes' />
             </FormControl>
           </ModalBody>
-          <ModalFooter justifyContent='space-between' alignItems='center'>
-            {onDelete && (
-              <Button colorScheme='red' onClick={onDelete}>Delete</Button>
-            )}
-            <Box marginLeft={onDelete ? 0 : 'auto'}>
-              <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
-              <Button variant='ghost' onClick={onClose}>Close</Button>
-            </Box>
+          <ModalFooter>
+            <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
+            <Button variant='ghost' onClick={onClose}>Close</Button>
           </ModalFooter>
         </Form>
       </ModalContent>
