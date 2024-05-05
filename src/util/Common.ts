@@ -11,3 +11,7 @@ export const calcTileLength = (line: Line) => {
   const [start, end] = line
   return Math.max(Math.abs(start[0] - end[0]), Math.abs(start[1] - end[1]))
 }
+
+export function calcDistance(p1: Point, p2: Point): number {
+  return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+}

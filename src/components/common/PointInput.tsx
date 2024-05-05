@@ -6,21 +6,28 @@ import NumberInput from './NumberInput'
 export interface PointInputProps extends ChakraProps {
     initialPoint?: Point,
     onAdd?: (point: Point) => void,
+    onChange?: (point: Point) => void
 }
 
 export default function PointInput({
   initialPoint,
   onAdd,
+  onChange,
   ...rest
 }: PointInputProps) {
   const [ x, setX ] = useState<number | undefined>()
   const [ y, setY ] = useState<number | undefined>()
 
+  const setPoint = useCallback((point: Point) => {
+    setX(point[0])
+    setY(point[1])
+    if (onChange) onChange(point)
+  }, [onChange, setX, setY])
+
   useEffect(() => {
     if (!initialPoint) return
-    setX(initialPoint[0])
-    setY(initialPoint[1])
-  }, [initialPoint])
+    setPoint(initialPoint)
+  }, [initialPoint, setPoint])
 
   const onPaste = useCallback((event: React.ClipboardEvent<HTMLInputElement>) => {
     const text = event.clipboardData.getData('text')
@@ -29,19 +36,18 @@ export default function PointInput({
     event.preventDefault()
 
     const [x, y] = text.split(',').map(point => Number(point))
-    setX(x)
-    setY(y)
-  }, [])
+    setPoint([x, y])
+  }, [setPoint])
 
   const onChangeX = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value)
-    if (!isNaN(value)) setX(value)
-  }, [])
+    if (!isNaN(value)) setPoint([value, y ?? 0])
+  }, [setPoint, y])
 
   const onChangeY = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value)
-    if (!isNaN(value)) setY(value)
-  }, [])
+    if (!isNaN(value)) setPoint([x ?? 0, value])
+  }, [setPoint, x])
 
   const onEnter = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!onAdd) return
@@ -55,6 +61,7 @@ export default function PointInput({
     <SimpleGrid {...rest} columns={onAdd ? 3 : 2} gap={4}>
       <NumberInput
         name='x'
+        placeholder='x'
         required
         value={x}
         onKeyDown={onEnter}
@@ -62,6 +69,7 @@ export default function PointInput({
         onPaste={onPaste}/>
       <NumberInput
         name='y'
+        placeholder='y'
         required
         value={y}
         onKeyDown={onEnter}

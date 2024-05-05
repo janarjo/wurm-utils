@@ -34,37 +34,61 @@ export default function Treasures() {
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const [ locations, setLocations ] = useState<Location[]>([])
   const [ editIndex, setEditIndex ] = useState<number>()
+  const [ currLocation, setCurrLocation ] = useState<Point>()
 
   const onAdd = useCallback((location: Location) => {
     setLocations([...locations, location ])
   }, [locations])
 
-  const onEdit = useCallback((location: Location, index: number) => {
+  const onEdit = useCallback((location: Location, index: number | undefined) => {
+    if (index === undefined) return
     const newLocations = [...locations]
     newLocations[index] = location
     setLocations(newLocations)
   }, [locations])
+
+  const onDelete = useCallback((index: number | undefined) => {
+    if (index === undefined) return
+    const newLocations = [...locations]
+    newLocations.splice(index, 1)
+    setLocations(newLocations)
+    setEditIndex(undefined)
+    onEditClose()
+  }, [locations, onEditClose])
 
   return (
     <Box padding={8} maxWidth={600}>
       <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
       <Box marginBottom={4}>
         <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
-        by finding the closest treasure to your current location.`}
+        by finding the closest treasure to your current location. 
+        Your location will be updated with each treasure you dig up.`}
         </Text>
         <Text>{`Simply add the locations of the treasures
         you want to find. You can add as many treasures as you want.
         You can also remove treasures you no longer want to find.`}
         </Text>
       </Box>
-      <Box marginBottom={4}>
-        <Button colorScheme='teal' onClick={onAddOpen}>Add Location</Button>
-      </Box>
+      <FormControl marginBottom={4} isRequired>
+        <FormLabel>Current Location (x, y)</FormLabel>
+        <PointInput
+          width={300}
+          initialPoint={currLocation}
+          onChange={(point) => setCurrLocation(point)} />
+      </FormControl>
+      <Button
+        colorScheme='teal'
+        onClick={onAddOpen}
+        isDisabled={!currLocation}
+        marginBottom={4}>
+          Add Treasure Map
+      </Button>
       <LocationModal isOpen={isAddOpen} onSave={onAdd} onClose={onAddClose} />
       <LocationModal
         isOpen={isEditOpen}
         location={editIndex !== undefined ? locations[editIndex] : undefined}
-        onSave={(location) => editIndex !== undefined ? onEdit(location, editIndex) : undefined}
+        onSave={(location) => onEdit(location, editIndex)}
+        onDelete={() => onDelete(editIndex)}
         onClose={() => {
           setEditIndex(undefined)
           onEditClose()
@@ -101,10 +125,11 @@ export interface LocationModalProps {
     isOpen: boolean,
     location?: Location,
     onSave: (point: Location) => void,
-    onClose: () => void
+    onClose: () => void,
+    onDelete?: () => void
 }
 
-function LocationModal({ isOpen, location, onSave, onClose }: LocationModalProps) {
+function LocationModal({ isOpen, location, onSave, onClose, onDelete }: LocationModalProps) {
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
@@ -142,9 +167,14 @@ function LocationModal({ isOpen, location, onSave, onClose }: LocationModalProps
               <Textarea name='notes' defaultValue={location?.notes} placeholder='Notes' />
             </FormControl>
           </ModalBody>
-          <ModalFooter>
-            <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
-            <Button variant='ghost' onClick={onClose}>Close</Button>
+          <ModalFooter justifyContent='space-between' alignItems='center'>
+            {onDelete && (
+              <Button colorScheme='red' onClick={onDelete}>Delete</Button>
+            )}
+            <Box marginLeft={onDelete ? 0 : 'auto'}>
+              <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
+              <Button variant='ghost' onClick={onClose}>Close</Button>
+            </Box>
           </ModalFooter>
         </Form>
       </ModalContent>
