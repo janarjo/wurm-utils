@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -26,7 +27,7 @@ import {
 } from '@chakra-ui/react'
 import { Form, Link as ReactRouterLink } from 'react-router-dom'
 import { Link as ChakraLink } from '@chakra-ui/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Location } from '../util/Treasures'
 import { Point } from '../Domain'
 import PointInput from './common/PointInput'
@@ -40,25 +41,39 @@ export default function Treasures() {
   const [ editIndex, setEditIndex ] = useState<number>()
   const [ currLocation, setCurrLocation ] = useState<Point>()
 
+  const updateLocations = useCallback((locations: Location[]) => {
+    const newLocations = locations
+      .map(location => ({
+        ...location,
+        distance: calcDistance(currLocation ?? [0, 0], location.point)
+      }))
+      .sort((a, b) => a.distance - b.distance)
+    setLocations(newLocations)
+  }, [currLocation])
+
+  useEffect(() => {
+    updateLocations(locations)
+  }, [currLocation, locations, updateLocations])
+
   const onAdd = useCallback((location: Location) => {
-    setLocations([...locations, location ])
-  }, [locations])
+    updateLocations([...locations, location ])
+  }, [locations, updateLocations])
 
   const onEdit = useCallback((location: Location, index: number | undefined) => {
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations[index] = location
-    setLocations(newLocations)
-  }, [locations])
+    updateLocations(newLocations)
+  }, [locations, updateLocations])
 
   const onDelete = useCallback((index: number | undefined) => {
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations.splice(index, 1)
-    setLocations(newLocations)
+    updateLocations(newLocations)
     setEditIndex(undefined)
     onEditClose()
-  }, [locations, onEditClose])
+  }, [locations, onEditClose, updateLocations])
 
   return (
     <Box padding={8} maxWidth={800}>
@@ -97,7 +112,6 @@ export default function Treasures() {
         isOpen={isEditOpen}
         location={editIndex !== undefined ? locations[editIndex] : undefined}
         onSave={(location) => onEdit(location, editIndex)}
-        onDelete={() => onDelete(editIndex)}
         onClose={() => {
           setEditIndex(undefined)
           onEditClose()
@@ -123,23 +137,33 @@ export default function Treasures() {
                   <Tooltip label={notes}><Text noOfLines={1}>{notes}</Text>
                   </Tooltip>
                 </Td>
-                <Td>
-                  <Button
-                    size={'sm'}
-                    colorScheme='blue'
-                    onClick={() => {
-                      setEditIndex(index)
-                      onEditOpen()
-                    }}>
+                <Td maxWidth={175}>
+                  <Flex justifyContent='center' gap={2}>
+                    <Button
+                      flexGrow={1}
+                      size={'sm'}
+                      colorScheme='teal'
+                      onClick={() => setCurrLocation(point)}>
+                      Claim
+                    </Button>
+                    <Button
+                      flexGrow={1}
+                      size={'sm'}
+                      colorScheme='blue'
+                      onClick={() => {
+                        setEditIndex(index)
+                        onEditOpen()
+                      }}>
                       Edit
-                  </Button>
-                  <Button
-                    size={'sm'}
-                    colorScheme='red'
-                    marginLeft={2}
-                    onClick={() => onDelete(index)}>
+                    </Button>
+                    <Button
+                      flexGrow={1}
+                      size={'sm'}
+                      colorScheme='red'
+                      onClick={() => onDelete(index)}>
                       Delete
-                  </Button>
+                    </Button>
+                  </Flex>
                 </Td>
               </Tr>
             ))}
@@ -157,7 +181,6 @@ export interface LocationModalProps {
     location?: Location,
     onSave: (point: Location) => void,
     onClose: () => void,
-    onDelete?: () => void
 }
 
 function LocationModal({
