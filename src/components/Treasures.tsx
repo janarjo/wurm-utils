@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  ButtonGroup,
   Flex,
   FormControl,
   FormLabel,
@@ -13,6 +14,13 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverFooter,
+  PopoverTrigger,
   Table,
   TableContainer,
   Tbody,
@@ -25,9 +33,9 @@ import {
   Tr,
   useDisclosure
 } from '@chakra-ui/react'
-import { Form, Link as ReactRouterLink } from 'react-router-dom'
+import { Link as ReactRouterLink } from 'react-router-dom'
 import { Link as ChakraLink } from '@chakra-ui/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Location } from '../util/Treasures'
 import { Point } from '../Domain'
 import PointInput from './common/PointInput'
@@ -37,6 +45,7 @@ import { calcDistance } from '../util/Common'
 export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
+  const { isOpen: isReplaceOpen, onOpen: onReplaceOpen, onClose: onReplaceClose } = useDisclosure()
   const [ locations, setLocations ] = useState<Location[]>([])
   const [ editIndex, setEditIndex ] = useState<number>()
   const [ currLocation, setCurrLocation ] = useState<Point>()
@@ -51,9 +60,10 @@ export default function Treasures() {
     setLocations(newLocations)
   }, [currLocation])
 
-  useEffect(() => {
+  const updateCurrLocation = useCallback((point: Point) => {
+    setCurrLocation(point)
     updateLocations(locations)
-  }, [currLocation, locations, updateLocations])
+  }, [locations, updateLocations])
 
   const onAdd = useCallback((location: Location) => {
     updateLocations([...locations, location ])
@@ -81,11 +91,13 @@ export default function Treasures() {
       <Box marginBottom={4}>
         <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
         by finding the closest treasure to your current location. 
-        Your location will be updated with each treasure you dig up.`}
+        Your location will be updated with each treasure you claim.`}
         </Text>
         <Text>{`Simply add the locations of the treasures
-        you want to find. You can add as many treasures as you want.
-        You can also remove treasures you no longer want to find.`}
+        you want to find. The distances will be automatically calculated and sorted 
+        by distance from your current location. Once you find a treasure ingame, claim it
+        and it will be removed from the list and your location will be updated.
+        Feel free to edit or delete any location whenever you'd like at any point.`}
         </Text>
       </Box>
       <FormControl marginBottom={4} isRequired>
@@ -93,7 +105,7 @@ export default function Treasures() {
         <PointInput
           width={300}
           initialPoint={currLocation}
-          onChange={(point) => setCurrLocation(point)} />
+          onChange={updateCurrLocation} />
       </FormControl>
       <Button
         colorScheme='teal'
@@ -103,18 +115,33 @@ export default function Treasures() {
           Add Map
       </Button>
       <LocationModal
-        currLocation={currLocation ?? [0, 0]}
         isOpen={isAddOpen}
         onSave={onAdd}
         onClose={onAddClose} />
       <LocationModal
-        currLocation={currLocation ?? [0, 0]}
         isOpen={isEditOpen}
         location={editIndex !== undefined ? locations[editIndex] : undefined}
         onSave={(location) => onEdit(location, editIndex)}
         onClose={() => {
           setEditIndex(undefined)
           onEditClose()
+        }}/>
+      <LocationModal
+        isOpen={isReplaceOpen}
+        location={editIndex !== undefined
+          ? {
+            ...locations[editIndex],
+            point: undefined,
+            grid: undefined
+          } as unknown as NullableLocation
+          : undefined}
+        onSave={(location) => {
+          editIndex !== undefined && updateCurrLocation(locations[editIndex].point)
+          onEdit(location, editIndex)
+        }}
+        onClose={() => {
+          setEditIndex(undefined)
+          onReplaceClose()
         }}/>
       <TableContainer marginBottom={8}>
         <Table variant='simple' size='sm'>
@@ -132,20 +159,23 @@ export default function Treasures() {
               <Tr key={index}>
                 <Td>({point[0]}, {point[1]}) {grid && ` - ${grid}`}</Td>
                 <Td>{quality}</Td>
-                <Td>{distance.toFixed(0)}</Td>
+                <Td>{distance?.toFixed(0) ?? '???'}</Td>
                 <Td maxWidth={150}>
                   <Tooltip label={notes}><Text noOfLines={1}>{notes}</Text>
                   </Tooltip>
                 </Td>
                 <Td maxWidth={175}>
                   <Flex justifyContent='center' gap={2}>
-                    <Button
-                      flexGrow={1}
-                      size={'sm'}
-                      colorScheme='teal'
-                      onClick={() => setCurrLocation(point)}>
-                      Claim
-                    </Button>
+                    <ClaimButton
+                      onFindTreasure={() => {
+                        updateCurrLocation(point)
+                        onDelete(index)
+                      }}
+                      onFindMap={() => {
+                        setEditIndex(index)
+                        onReplaceOpen()
+                      }}
+                    />
                     <Button
                       flexGrow={1}
                       size={'sm'}
@@ -175,32 +205,23 @@ export default function Treasures() {
   )
 }
 
-export interface LocationModalProps {
-    currLocation: Point,
-    isOpen: boolean,
-    location?: Location,
-    onSave: (point: Location) => void,
-    onClose: () => void,
-}
-
-function LocationModal({
-  currLocation,
-  isOpen,
-  location,
-  onSave,
-  onClose
-}: LocationModalProps) {
+type NullableLocation = Location & { point: Point | undefined }
+function LocationModal({ isOpen, location, onSave, onClose }: {
+  isOpen: boolean,
+  location?: NullableLocation,
+  onSave: (location: Location) => void,
+  onClose: () => void,
+}) {
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const point = [Number(formData.get('x')), Number(formData.get('y'))] as Point
-    const distance = calcDistance(currLocation, point)
     const grid = formData.get('grid') as string
     const quality = Number(formData.get('quality')) || undefined
     const notes = formData.get('notes') as string
-    onSave({ point, distance, grid, quality, notes })
+    onSave({ point, grid, quality, notes })
     onClose()
-  }, [currLocation, onSave, onClose])
+  }, [onSave, onClose])
 
   return (
     <Modal size='sm' isOpen={isOpen} onClose={onClose}>
@@ -208,7 +229,7 @@ function LocationModal({
       <ModalContent>
         <ModalHeader>{location ? 'Edit Location' : 'Add Location'}</ModalHeader>
         <ModalCloseButton />
-        <Form onSubmit={onSubmit}>
+        <Box as='form' onSubmit={onSubmit}>
           <ModalBody>
             <FormControl marginBottom={4} isRequired>
               <FormLabel>Coordinate (x, y)</FormLabel>
@@ -232,8 +253,49 @@ function LocationModal({
             <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
             <Button variant='ghost' onClick={onClose}>Close</Button>
           </ModalFooter>
-        </Form>
+        </Box>
       </ModalContent>
     </Modal>
+  )
+}
+
+function ClaimButton({ onFindTreasure, onFindMap }: {
+    onFindTreasure: () => void,
+    onFindMap: () => void
+  }) {
+  return (
+    <Popover >
+      {({ onClose }) => (
+        <>
+          <PopoverTrigger>
+            <Button flexGrow={1} size='sm' colorScheme='teal'>
+          Claim
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody>
+              <Text>What did you find?</Text>
+            </PopoverBody>
+            <PopoverFooter>
+              <ButtonGroup size='sm'>
+                <Button
+                  colorScheme='teal'
+                  onClick={() => {
+                    onFindTreasure()
+                    onClose()
+                  }}>
+                  Treasure
+                </Button>
+                <Button onClick={onFindMap}>
+                  New Map
+                </Button>
+              </ButtonGroup>
+            </PopoverFooter>
+          </PopoverContent>
+        </>
+      )}
+    </Popover>
   )
 }
