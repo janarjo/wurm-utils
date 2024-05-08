@@ -7,6 +7,7 @@ import {
   FormLabel,
   Heading,
   Input,
+  Link as ChakraLink,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -31,13 +32,14 @@ import {
   Thead,
   Tooltip,
   Tr,
-  useDisclosure
+  useDisclosure,
+  SimpleGrid,
+  Select
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { Link as ChakraLink } from '@chakra-ui/react'
 import { useCallback, useState } from 'react'
 import { Location } from '../util/Treasures'
-import { Point } from '../Domain'
+import { MAP_HOSTS, Point, Server } from '../Domain'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
 import { calcDistance } from '../util/Common'
@@ -49,15 +51,25 @@ export default function Treasures() {
   const [ locations, setLocations ] = useState<Location[]>([])
   const [ editIndex, setEditIndex ] = useState<number>()
   const [ currLocation, setCurrLocation ] = useState<Point>()
+  const [ server, setServer ] = useState<Server>(Server.XANADU)
 
   const updateLocations = useCallback((locations: Location[]) => {
+    if (!currLocation) return
     const newLocations = locations
       .map(location => ({
         ...location,
-        distance: calcDistance(currLocation ?? [0, 0], location.point)
+        distance: calcDistance(currLocation, location.point)
       }))
       .sort((a, b) => a.distance - b.distance)
-    setLocations(newLocations)
+    setLocations(
+      oldLocations => {
+        if (oldLocations.length === newLocations.length &&
+          oldLocations.every((location, index) => location === newLocations[index])) {
+          return oldLocations
+        }
+        return newLocations
+      }
+    )
   }, [currLocation])
 
   const updateCurrLocation = useCallback((point: Point) => {
@@ -77,6 +89,7 @@ export default function Treasures() {
   }, [locations, updateLocations])
 
   const onDelete = useCallback((index: number | undefined) => {
+    console.log('delete', index)
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations.splice(index, 1)
@@ -100,17 +113,28 @@ export default function Treasures() {
         Feel free to edit or delete any location whenever you'd like at any point.`}
         </Text>
       </Box>
-      <FormControl marginBottom={4} isRequired>
-        <FormLabel>Current Location (x, y)</FormLabel>
-        <PointInput
-          width={300}
-          initialPoint={currLocation}
-          onChange={updateCurrLocation} />
-      </FormControl>
+      <SimpleGrid columns={2} spacing={4} marginBottom={4}>
+        <FormControl isRequired>
+          <FormLabel>Server</FormLabel>
+          <Select value={server} onChange={(event) => setServer(event.target.value as Server)}>
+            {Object.keys(MAP_HOSTS).map(server => (
+              <option key={server} value={server}>
+                {server.charAt(0) + server.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl isRequired>
+          <FormLabel>Current Location (x, y)</FormLabel>
+          <PointInput
+            initialPoint={currLocation}
+            onChange={updateCurrLocation} />
+        </FormControl>
+      </SimpleGrid>
       <Button
         colorScheme='teal'
         onClick={onAddOpen}
-        isDisabled={!currLocation}
+        isDisabled={!currLocation || !server}
         marginBottom={4}>
           Add Map
       </Button>
@@ -157,7 +181,14 @@ export default function Treasures() {
           <Tbody>
             {locations.map(({ point, distance, grid, quality, notes }, index) => (
               <Tr key={index}>
-                <Td>({point[0]}, {point[1]}) {grid && ` - ${grid}`}</Td>
+                <Td>
+                  <ChakraLink
+                    color='teal'
+                    href={`${MAP_HOSTS[server]}/#${point[0]},${point[1]}`}
+                    target='_blank'>
+                    ({point[0]}, {point[1]}) {grid && ` - ${grid}`}
+                  </ChakraLink>
+                </Td>
                 <Td>{quality}</Td>
                 <Td>{distance?.toFixed(0) ?? '???'}</Td>
                 <Td maxWidth={150}>

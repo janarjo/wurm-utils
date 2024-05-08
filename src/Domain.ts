@@ -1,3 +1,29 @@
+export enum Server {
+  XANADU = 'XANADU',
+  CELEBRATION = 'CELEBRATION',
+  DELIVERANCE = 'DELIVERANCE',
+  EXODUS = 'EXODUS',
+  INDEPENDENCE = 'INDEPENDENCE',
+  PRISTINE = 'PRISTINE',
+  RELEASE = 'RELEASE',
+  CADENCE = 'CADENCE',
+  MELODY = 'MELODY',
+  HARMONY = 'HARMONY',
+}
+
+export const MAP_HOSTS = {
+  [Server.CELEBRATION]: 'https://celebration.yaga.host',
+  [Server.DELIVERANCE]: 'https://deliverance.yaga.host',
+  [Server.EXODUS]: 'https://exodus.yaga.host',
+  [Server.INDEPENDENCE]: 'https://independence.yaga.host',
+  [Server.PRISTINE]: 'https://pristine.yaga.host',
+  [Server.RELEASE]: 'https://release.yaga.host',
+  [Server.XANADU]: 'https://xanadu.yaga.host',
+  [Server.CADENCE]: 'https://cadence.yaga.host',
+  [Server.MELODY]: 'https://melody.yaga.host',
+  [Server.HARMONY]: 'https://harmony.yaga.host',
+}
+
 export type Point = readonly [number, number]
 export type Line = readonly [Point, Point]
 
