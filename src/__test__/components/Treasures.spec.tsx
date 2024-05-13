@@ -147,7 +147,13 @@ describe('Treasures', () => {
       beforeEach(async () => {
         const { mapTable } = mainElems()
         const rows = within(mapTable).getAllByRole('row')
-        await replaceMap(rows[1], { point: [60, 70], grid: 'B2', quality: 20, notes: 'New notes' })
+        await replaceMap(rows[1], { point: [80, 90], grid: 'B2', quality: 20, notes: 'New notes' })
+      })
+
+      it('should update the position', () => {
+        const { currPosX, currPosY } = mainElems()
+        expect(currPosX).toHaveValue('40')
+        expect(currPosY).toHaveValue('50')
       })
 
       it('should update the map in the table', () => {
@@ -159,7 +165,7 @@ describe('Treasures', () => {
         const updatedRow = rows[1]
         const cells = within(updatedRow).getAllByRole('cell')
 
-        expect(cells[0]).toHaveTextContent('(60, 70) - B2')
+        expect(cells[0]).toHaveTextContent('(80, 90) - B2')
         expect(cells[1]).toHaveTextContent('20')
         expect(cells[2]).toHaveTextContent('57')
         expect(cells[3]).toHaveTextContent('New notes')

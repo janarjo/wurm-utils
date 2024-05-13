@@ -89,6 +89,17 @@ export default function Treasures() {
     onEditClose()
   }, [currLocation, locations, onEditClose, updateLocations])
 
+  const onReplace = useCallback((
+    location: TreasureMap,
+    index: number | undefined,
+    currLocation: Point) => {
+    if (index === undefined) return
+    const newLocations = [...locations]
+    newLocations[index] = location
+    setCurrLocation(currLocation)
+    updateLocations(newLocations, currLocation)
+  }, [locations, updateLocations])
+
   return (
     <Box padding={8} maxWidth={800}>
       <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
@@ -153,10 +164,8 @@ export default function Treasures() {
             grid: undefined
           }
           : undefined}
-        onSave={(location) => {
-          editIndex !== undefined && updateCurrLocation(locations[editIndex].point)
-          onEdit(location, editIndex)
-        }}
+        onSave={(location) => editIndex !== undefined
+          && onReplace(location, editIndex, locations[editIndex].point)}
         onClose={() => {
           setEditIndex(undefined)
           onReplaceClose()
