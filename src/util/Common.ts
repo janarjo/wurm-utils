@@ -1,5 +1,7 @@
 import { Line, Point } from '../Domain'
 
+export const equals = (p1: Point, p2: Point) => p1[0] === p2[0] && p1[1] === p2[1]
+
 export const calcSegments = (points: Point[]) => points
   .map((point, index, points) => {
     if (index === 0) return undefined

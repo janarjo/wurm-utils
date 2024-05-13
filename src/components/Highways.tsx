@@ -24,7 +24,7 @@ import { calcSegments } from '../util/Common'
 export default function Highways() {
   const [ cost, setCost ] = useState<HighwayCost | null>(null)
   const [ points, setPoints ] = useState<Point[]>([])
-  const [ initialPoint, setInitialPoint ] = useState<Point>([0, 0])
+  const [ pointKey, setPointKey ] = useState<number>(0)
   const [ width, setWidth ] = useState<number>(2)
   const [ sandLining, setSandLining ] = useState<boolean>(false)
   const [ fieldErrors, setFieldErrors ] = useState<Record<string, string>>({})
@@ -64,7 +64,7 @@ export default function Highways() {
   const onReset = useCallback(() => {
     setCost(null)
     setPoints([])
-    setInitialPoint([0, 0])
+    setPointKey(prev => prev + 1)
     setWidth(2)
     setSandLining(false)
     setFieldErrors({})
@@ -80,7 +80,7 @@ export default function Highways() {
             <PointsInput
               name='points'
               points={points}
-              initialPoint={initialPoint}
+              key={pointKey}
               onAdd={onPointAdd}
               onRemove={onPointRemove}/>
           </FormControl>

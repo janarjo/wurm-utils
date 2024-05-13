@@ -1,47 +1,44 @@
 import {
   Input,
-  InputProps } from '@chakra-ui/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+  InputProps
+} from '@chakra-ui/react'
+import { useCallback, useMemo } from 'react'
 
 export interface ConversionOptions {
     allowNegative?: boolean
     allowDecimal?: boolean
 }
 
-export interface NumberInputProps extends InputProps, ConversionOptions {
+export interface NumberInputProps extends Omit<InputProps, 'onChange'>, ConversionOptions {
   value?: string | number,
   required?: boolean,
+  disabled?: boolean,
+  onChange: (value: string) => void,
 }
 
 export default function NumberInput({
-  value: initialValue = '',
+  value,
   required,
   onChange,
+  disabled,
   allowNegative,
   allowDecimal,
   ...rest }: NumberInputProps) {
-  const [ value, setValue ] = useState<string>(initialValue.toString())
-
-  if (!onChange) onChange = (event) => setValue(event.target.value)
-
-  useEffect(() => {
-    setValue(initialValue.toString())
-  }, [initialValue])
-
   const opts = useMemo(() => ({ allowNegative, allowDecimal }), [allowNegative, allowDecimal])
+
   const onNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = toNumeric(event.target.value, opts) || value || ''
-    onChange({ ...event, target: { ...event.target, value: newValue } })
-    setValue(newValue)
-  }, [onChange, value, opts])
+    const newValue = toNumeric(event.target.value, opts) || value?.toString() || ''
+    onChange(newValue)
+  }, [value, opts, onChange])
 
   return (
     <Input
       {...rest}
       type='text'
-      value={value}
+      value={value !== undefined ? value : ''}
       onChange={onNumberChange}
-      required={required}/>
+      required={required}
+      disabled={disabled}/>
   )
 }
 

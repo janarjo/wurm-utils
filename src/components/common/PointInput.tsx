@@ -1,33 +1,23 @@
 import { Button, ChakraProps, SimpleGrid } from '@chakra-ui/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { Point } from '../../Domain'
 import NumberInput from './NumberInput'
 
 export interface PointInputProps extends ChakraProps {
-    initialPoint?: Point,
+    point?: Point,
     onAdd?: (point: Point) => void,
-    onChange?: (point: Point) => void
+    onChange: (point: Point) => void,
+    disabled?: boolean,
 }
 
 export default function PointInput({
-  initialPoint,
+  point,
   onAdd,
   onChange,
+  disabled,
   ...rest
 }: PointInputProps) {
-  const [ x, setX ] = useState<number | undefined>()
-  const [ y, setY ] = useState<number | undefined>()
-
-  const setPoint = useCallback((point: Point) => {
-    setX(point[0])
-    setY(point[1])
-    if (onChange) onChange(point)
-  }, [onChange, setX, setY])
-
-  useEffect(() => {
-    if (!initialPoint) return
-    setPoint(initialPoint)
-  }, [initialPoint, setPoint])
+  const [x, y] = point ?? []
 
   const onPaste = useCallback((event: React.ClipboardEvent<HTMLInputElement>) => {
     const text = event.clipboardData.getData('text')
@@ -36,26 +26,27 @@ export default function PointInput({
     event.preventDefault()
 
     const [x, y] = text.split(',').map(point => Number(point))
-    setPoint([x, y])
-  }, [setPoint])
+    onChange([x, y])
+  }, [onChange])
 
-  const onChangeX = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value)
-    if (!isNaN(value)) setPoint([value, y ?? 0])
-  }, [setPoint, y])
+  const onChangeX = useCallback((value: string) => {
+    const x = Number(value)
+    if (!isNaN(x)) onChange([x, y ?? 0])
+  }, [onChange, y])
 
-  const onChangeY = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(event.target.value)
-    if (!isNaN(value)) setPoint([x ?? 0, value])
-  }, [setPoint, x])
+  const onChangeY = useCallback((value: string) => {
+    const y = Number(value)
+    if (!isNaN(y)) onChange([x ?? 0, y])
+  }, [onChange, x])
 
   const onEnter = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!onAdd) return
+    if (x === undefined || y === undefined) return
     if (event.key === 'Enter') {
       event.preventDefault()
-      onAdd([x ?? 0, y ?? 0])
+      onAdd([x, y])
     }
-  }, [x, y, onAdd])
+  }, [onAdd, x, y])
 
   return (
     <SimpleGrid {...rest} columns={onAdd ? 3 : 2} gap={4}>
@@ -66,7 +57,8 @@ export default function PointInput({
         value={x}
         onKeyDown={onEnter}
         onChange={onChangeX}
-        onPaste={onPaste}/>
+        onPaste={onPaste}
+        disabled={disabled}/>
       <NumberInput
         name='y'
         placeholder='y'
@@ -74,11 +66,15 @@ export default function PointInput({
         value={y}
         onKeyDown={onEnter}
         onChange={onChangeY}
-        onPaste={onPaste}/>
+        onPaste={onPaste}
+        disabled={disabled}/>
       {onAdd && (
-        <Button onClick={() => onAdd([x ?? 0, y ?? 0])}>Add</Button>
+        <Button
+          onClick={() => onAdd([x ?? 0, y ?? 0])}
+          isDisabled={disabled || x  === undefined || y === undefined}>
+            Add
+        </Button>
       )}
     </SimpleGrid>
   )
 }
-

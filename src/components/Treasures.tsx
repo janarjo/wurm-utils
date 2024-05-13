@@ -38,7 +38,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { useCallback, useState } from 'react'
-import { Location } from '../util/Treasures'
+import { TreasureMap } from '../util/Treasures'
 import { MAP_HOSTS, Point, Server } from '../Domain'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
@@ -48,12 +48,12 @@ export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const { isOpen: isReplaceOpen, onOpen: onReplaceOpen, onClose: onReplaceClose } = useDisclosure()
-  const [ locations, setLocations ] = useState<Location[]>([])
+  const [ locations, setLocations ] = useState<TreasureMap[]>([])
   const [ editIndex, setEditIndex ] = useState<number>()
   const [ currLocation, setCurrLocation ] = useState<Point>()
   const [ server, setServer ] = useState<Server>(Server.XANADU)
 
-  const updateLocations = useCallback((locations: Location[]) => {
+  const updateLocations = useCallback((locations: TreasureMap[], currLocation?: Point) => {
     if (!currLocation) return
     const newLocations = locations
       .map(location => ({
@@ -61,42 +61,33 @@ export default function Treasures() {
         distance: calcDistance(currLocation, location.point)
       }))
       .sort((a, b) => a.distance - b.distance)
-    setLocations(
-      oldLocations => {
-        if (oldLocations.length === newLocations.length &&
-          oldLocations.every((location, index) => location === newLocations[index])) {
-          return oldLocations
-        }
-        return newLocations
-      }
-    )
-  }, [currLocation])
+    setLocations(newLocations)
+  }, [])
 
   const updateCurrLocation = useCallback((point: Point) => {
     setCurrLocation(point)
-    updateLocations(locations)
+    updateLocations(locations, point)
   }, [locations, updateLocations])
 
-  const onAdd = useCallback((location: Location) => {
-    updateLocations([...locations, location ])
-  }, [locations, updateLocations])
+  const onAdd = useCallback((location: TreasureMap) => {
+    updateLocations([...locations, location ], currLocation)
+  }, [currLocation, locations, updateLocations])
 
-  const onEdit = useCallback((location: Location, index: number | undefined) => {
+  const onEdit = useCallback((location: TreasureMap, index: number | undefined) => {
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations[index] = location
-    updateLocations(newLocations)
-  }, [locations, updateLocations])
+    updateLocations(newLocations, currLocation)
+  }, [currLocation, locations, updateLocations])
 
   const onDelete = useCallback((index: number | undefined) => {
-    console.log('delete', index)
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations.splice(index, 1)
-    updateLocations(newLocations)
+    updateLocations(newLocations, currLocation)
     setEditIndex(undefined)
     onEditClose()
-  }, [locations, onEditClose, updateLocations])
+  }, [currLocation, locations, onEditClose, updateLocations])
 
   return (
     <Box padding={8} maxWidth={800}>
@@ -127,7 +118,7 @@ export default function Treasures() {
         <FormControl isRequired>
           <FormLabel>Current Location (x, y)</FormLabel>
           <PointInput
-            initialPoint={currLocation}
+            point={currLocation}
             onChange={updateCurrLocation} />
         </FormControl>
       </SimpleGrid>
@@ -141,8 +132,10 @@ export default function Treasures() {
       <LocationModal
         isOpen={isAddOpen}
         onSave={onAdd}
-        onClose={onAddClose} />
+        onClose={onAddClose}
+        key={'add' + (isAddOpen ? 'Open' : 'Closed')}/>
       <LocationModal
+        key={'edit' + editIndex}
         isOpen={isEditOpen}
         location={editIndex !== undefined ? locations[editIndex] : undefined}
         onSave={(location) => onEdit(location, editIndex)}
@@ -151,13 +144,14 @@ export default function Treasures() {
           onEditClose()
         }}/>
       <LocationModal
+        key={'replace' + editIndex}
         isOpen={isReplaceOpen}
         location={editIndex !== undefined
           ? {
             ...locations[editIndex],
             point: undefined,
             grid: undefined
-          } as unknown as NullableLocation
+          }
           : undefined}
         onSave={(location) => {
           editIndex !== undefined && updateCurrLocation(locations[editIndex].point)
@@ -236,52 +230,72 @@ export default function Treasures() {
   )
 }
 
-type NullableLocation = Location & { point: Point | undefined }
-function LocationModal({ isOpen, location, onSave, onClose }: {
+type PartialMap = Omit<TreasureMap, 'point'> & { point?: Point }
+function LocationModal({ isOpen, location: editLocation, onSave, onClose }: {
   isOpen: boolean,
-  location?: NullableLocation,
-  onSave: (location: Location) => void,
+  location?: PartialMap,
+  onSave: (location: TreasureMap) => void,
   onClose: () => void,
 }) {
+  const [location, setLocation ] = useState<PartialMap>({
+    ...editLocation,
+  })
+  const { point, grid, quality, notes } = location
+
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const point = [Number(formData.get('x')), Number(formData.get('y'))] as Point
-    const grid = formData.get('grid') as string
-    const quality = Number(formData.get('quality')) || undefined
-    const notes = formData.get('notes') as string
-    onSave({ point, grid, quality, notes })
+    if (!location.point) return
+    onSave({ ...location, point: location.point })
     onClose()
-  }, [onSave, onClose])
+  }, [location, onSave, onClose])
+
+  const onFieldChange = useCallback((key: string, value: string | number | Point) => {
+    setLocation(oldLocation => ({
+      ...oldLocation,
+      [key]: value
+    }))
+  }, [])
 
   return (
     <Modal size='sm' isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{location ? 'Edit Location' : 'Add Location'}</ModalHeader>
+        <ModalHeader>{editLocation ? 'Edit Location' : 'Add Location'}</ModalHeader>
         <ModalCloseButton />
         <Box as='form' onSubmit={onSubmit}>
           <ModalBody>
             <FormControl marginBottom={4} isRequired>
               <FormLabel>Coordinate (x, y)</FormLabel>
-              <PointInput initialPoint={location?.point}/>
+              <PointInput
+                point={point}
+                onChange={(point) => onFieldChange('point', point)}/>
             </FormControl>
             <FormControl marginBottom={4}>
-              <Input name='grid' maxLength={3} defaultValue={location?.grid} placeholder='Grid'/>
+              <Input
+                name='grid'
+                placeholder='Grid'
+                maxLength={3}
+                value={grid ?? ''}
+                onChange={(event) => onFieldChange('grid', event.target.value)}/>
             </FormControl>
             <FormControl marginBottom={4}>
               <NumberInput
                 name='quality'
-                value={location?.quality}
+                value={quality}
                 placeholder='Quality'
-                allowDecimal/>
+                allowDecimal
+                onChange={(value) => onFieldChange('quality', value)}/>
             </FormControl>
             <FormControl>
-              <Textarea name='notes' defaultValue={location?.notes} placeholder='Notes' />
+              <Textarea
+                name='notes'
+                value={notes ?? ''}
+                placeholder='Notes'
+                onChange={(event) => onFieldChange('notes', event.target.value)}/>
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button type='submit' colorScheme='blue' mr={3}>{location ? 'Save' : 'Add'}</Button>
+            <Button type='submit' colorScheme='blue' mr={3}>{editLocation ? 'Save' : 'Add'}</Button>
             <Button variant='ghost' onClick={onClose}>Close</Button>
           </ModalFooter>
         </Box>
