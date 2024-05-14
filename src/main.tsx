@@ -8,12 +8,13 @@ import {
 import Root from './components/Root.tsx'
 import Highways from './components/Highways.tsx'
 import Treasures from './components/Treasures.tsx'
-
+import Bridges from './components/Bridges.tsx'
 
 const router = createHashRouter([
   { path: '/', element: <Root /> },
   { path: '/highways', element: <Highways /> },
   { path: '/treasures', element: <Treasures /> },
+  { path: '/bridges', element: <Bridges /> },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
