@@ -18,30 +18,28 @@ import { Point } from '../../Domain'
 import { calcDistance } from '../../util/Common'
 
 export interface LengthInputProps extends NumberInputProps {
+  maxPoints?: number
 }
 
-export default function LengthInput({ onChange, ...rest }: LengthInputProps) {
+export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInputProps) {
   const [ points, setPoints ] = useState<Point[]>([])
   const [ pointKey, setPointKey ] = useState<number>(0)
 
   const onAdd = useCallback((point: Point) => {
-    if (!onChange) return
-    if (points.length >= 2) {
-      const length = calcDistance(points[0], points[1])
-      onChange(length.toString())
-      setPoints([])
-      return
-    }
+    if (maxPoints && points.length >= maxPoints) return
     setPoints([...points, point])
-  }, [onChange, points])
+  }, [maxPoints, points])
 
   const onRemove = useCallback((index: number) => {
     setPoints(points.filter((_, i) => i !== index))
   }, [points])
 
   const onCalculate = useCallback(() => {
-    if (points.length !== 2) return
-    const length = calcDistance(points[0], points[1])
+    if (points.length < 2) return
+    const length = points.reduce((acc, point, index) => {
+      if (index === 0) return acc
+      return acc + calcDistance(points[index - 1], point)
+    }, 0)
     onChange(Math.ceil(length).toString())
     setPoints([])
     setPointKey(prev => prev + 1)
@@ -64,7 +62,7 @@ export default function LengthInput({ onChange, ...rest }: LengthInputProps) {
               <PopoverArrow />
               <PopoverCloseButton />
               <PopoverHeader>
-                Calculate length from two points
+                Calculate length from points
               </PopoverHeader>
               <PopoverBody>
                 <PointsInput
@@ -72,7 +70,7 @@ export default function LengthInput({ onChange, ...rest }: LengthInputProps) {
                   points={points}
                   onAdd={onAdd}
                   onRemove={onRemove}
-                  maxPoints={2}
+                  maxPoints={maxPoints}
                   key={pointKey}/>
               </PopoverBody>
               <PopoverFooter
@@ -81,7 +79,8 @@ export default function LengthInput({ onChange, ...rest }: LengthInputProps) {
                 gap={4}>
                 <ButtonGroup size='sm'>
                   <Button
-                    isDisabled={points.length !== 2}
+                    type='submit'
+                    isDisabled={points.length < 2}
                     colorScheme='blue'
                     onClick={() => {
                       onCalculate()

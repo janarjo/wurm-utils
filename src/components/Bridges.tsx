@@ -28,7 +28,8 @@ export default function Bridges() {
             name='length'
             placeholder='Length'
             value={length}
-            onChange={(value) => setLength(Number(value))}/>
+            onChange={(value) => setLength(Number(value))}
+            maxPoints={2}/>
         </FormControl>
         <FormControl isRequired>
           <FormLabel>Bridge width</FormLabel>
