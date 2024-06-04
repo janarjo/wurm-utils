@@ -52,7 +52,7 @@ export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInpu
       gap={2}
       marginBottom={4}>
       <NumberInput onChange={onChange} {...rest} />
-      <Popover>
+      <Popover isLazy>
         {({ onClose }) => (
           <>
             <PopoverTrigger>
@@ -79,7 +79,7 @@ export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInpu
                 gap={4}>
                 <ButtonGroup size='sm'>
                   <Button
-                    type='submit'
+                    type='button'
                     isDisabled={points.length < 2}
                     colorScheme='blue'
                     onClick={() => {
