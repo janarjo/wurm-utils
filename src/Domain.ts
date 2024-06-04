@@ -28,26 +28,39 @@ export type Point = readonly [number, number]
 export type Line = readonly [Point, Point]
 
 export enum ItemCode {
-    STONE_SHARD = 'STONE_SHARD',
-    STONE_BRICK = 'STONE_BRICK',
-    PILE_OF_SAND = 'PILE_OF_SAND',
-    BLIND_CATSEYE = 'BLIND_CATSEYE',
-    CATSEYE = 'CATSEYE'
+  STONE_SHARD = 'STONE_SHARD',
+  STONE_BRICK = 'STONE_BRICK',
+  MARBLE_BRICK = 'MARBLE_BRICK',
+  SLATE_BRICK = 'SLATE_BRICK',
+  SANDSTONE_BRICK = 'SANDSTONE_BRICK',
+  ROUNDED_STONE = 'ROUNDED_STONE',
+  POTTERY_BRICK = 'POTTERY_BRICK',
+  MORTAR = 'MORTAR',
+  PILE_OF_SAND = 'PILE_OF_SAND',
+  BLIND_CATSEYE = 'BLIND_CATSEYE',
+  CATSEYE = 'CATSEYE',
+  LARGE_NAILS = 'LARGE_NAILS',
+  SMALL_NAILS = 'SMALL_NAILS',
+  WOODEN_BEAM = 'WOODEN_BEAM',
+  SHAFT = 'SHAFT',
+  PLANK = 'PLANK',
+  IRON_RIBBON = 'IRON_RIBBON',
+  CLAY = 'CLAY',
 }
 
 export interface Ingredient {
-    code: ItemCode
-    weight: number
+  code: ItemCode
+  weight: number
 }
 
 export interface Recipe {
-    ingredients: Ingredient[]
-    result: Item
+  ingredients: Ingredient[]
+  result: Item
 }
 
 export interface Item {
-    code: ItemCode
-    weight: number
+  code: ItemCode
+  weight: number
 }
 
 export const recipes: { [key in ItemCode]?: Recipe } = {

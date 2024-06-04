@@ -7,7 +7,7 @@ describe('Highway costs', () => {
     const segments: Line[] = [[[0, 0], [0, 10]],]
     expect(calcHighwayCost(segments, 2)).toEqual({
       length: 10,
-      amounts: new Map([
+      totalMats: new Map([
         ['STONE_BRICK', 20],
         ['PILE_OF_SAND', 0],
         ['CATSEYE', 10]
@@ -19,7 +19,7 @@ describe('Highway costs', () => {
     const segments: Line[] = [[[0, 0], [0, 10]]]
     expect(calcHighwayCost(segments, 1, ItemCode.STONE_BRICK, true)).toEqual({
       length: 10,
-      amounts: new Map([
+      totalMats: new Map([
         ['STONE_BRICK', 10],
         ['PILE_OF_SAND', 20],
         ['CATSEYE', 10]
@@ -36,7 +36,7 @@ describe('Highway costs', () => {
 
     expect(calcHighwayCost(segments, 1)).toEqual({
       length: 30,
-      amounts: new Map([
+      totalMats: new Map([
         ['STONE_BRICK', 30],
         ['PILE_OF_SAND', 0],
         ['CATSEYE', 30]

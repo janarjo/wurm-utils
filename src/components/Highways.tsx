@@ -111,9 +111,9 @@ export default function Highways() {
           </CardHeader>
           <CardBody>
             <Text>Total length (tiles): {cost.length}</Text>
-            <Text>Bricks: {cost.amounts.get(ItemCode.STONE_BRICK)}</Text>
-            <Text>Catseyes: {cost.amounts.get(ItemCode.CATSEYE)}</Text>
-            <Text>Piles of Sand: {cost.amounts.get(ItemCode.PILE_OF_SAND)}</Text>
+            <Text>Bricks: {cost.totalMats.get(ItemCode.STONE_BRICK)}</Text>
+            <Text>Catseyes: {cost.totalMats.get(ItemCode.CATSEYE)}</Text>
+            <Text>Piles of Sand: {cost.totalMats.get(ItemCode.PILE_OF_SAND)}</Text>
           </CardBody>
         </Card>
       )}

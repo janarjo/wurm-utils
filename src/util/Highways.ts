@@ -2,7 +2,7 @@ import { ItemCode, Line } from '../Domain'
 import { calcTileLength } from './Common'
 
 export interface HighwayCost {
-    amounts: Map<ItemCode, number>
+    totalMats: Map<ItemCode, number>
     length: number
 }
 
@@ -17,7 +17,7 @@ export function calcHighwayCost(
   const totalLength = calcTotalTileLength(segments)
   return {
     length: totalLength,
-    amounts: new Map([
+    totalMats: new Map([
       [paving, totalLength * width],
       [ItemCode.PILE_OF_SAND, sandLining ? totalLength * 2 : 0],
       [ItemCode.CATSEYE, totalLength]
