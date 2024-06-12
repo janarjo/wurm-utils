@@ -33,7 +33,6 @@ describe('LengthInput', () => {
       const measureBtn = screen.getByText('Measure')
       fireEvent.click(measureBtn)
       popup = await screen.getByRole('dialog', { hidden: true })
-      console.log('logging', popup.innerHTML)
     })
 
     it('should open measure tooltip', () => {

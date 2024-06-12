@@ -21,7 +21,6 @@ export default function Bridges() {
 
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    console.log('Submit')
   }, [])
 
   const onReset = useCallback((event: React.FormEvent<HTMLFormElement>) => {
