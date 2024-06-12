@@ -53,9 +53,9 @@ describe('Treasures', () => {
     })
 
     it('should open a dialog when the button is clicked', async () => {
-      const { addMapBtn, addLocationPopup } = mainElems()
+      const { addMapBtn, addMapPopup } = mainElems()
       fireEvent.click(addMapBtn)
-      expect(await addLocationPopup).toBeInTheDocument()
+      expect(await addMapPopup).toBeInTheDocument()
     })
   })
 
@@ -65,7 +65,7 @@ describe('Treasures', () => {
       fireEvent.change(currPosX, { target: { value: '20' } })
       fireEvent.change(currPosY, { target: { value: '30' } })
 
-      await addMap({ point: [40, 50], grid: 'A1', quality: 15, notes: 'Some notes' })
+      await addMap({ position: [40, 50], grid: 'A1', quality: 15, notes: 'Some notes' })
     })
 
     it('should have appropriate table headers', () => {
@@ -73,7 +73,7 @@ describe('Treasures', () => {
       const headers = within(mapTable).getAllByRole('columnheader')
 
       expect(headers).toHaveLength(5)
-      expect(headers[0]).toHaveTextContent('Location (x, y)')
+      expect(headers[0]).toHaveTextContent('Position (x, y)')
       expect(headers[1]).toHaveTextContent('Quality')
       expect(headers[2]).toHaveTextContent('Distance')
       expect(headers[3]).toHaveTextContent('Notes')
@@ -110,7 +110,7 @@ describe('Treasures', () => {
 
       const storedMap = stored[0]
       expect(storedMap).toMatchObject({
-        point: [40, 50],
+        position: [40, 50],
         grid: 'A1',
         quality: '15',
         distance: 28.284271247461902,
@@ -164,7 +164,8 @@ describe('Treasures', () => {
       beforeEach(async () => {
         const { mapTable } = mainElems()
         const rows = within(mapTable).getAllByRole('row')
-        await replaceMap(rows[1], { point: [80, 90], grid: 'B2', quality: 20, notes: 'New notes' })
+        await replaceMap(rows[1],
+          { position: [80, 90], grid: 'B2', quality: 20, notes: 'New notes' })
       })
 
       it('should update the position', () => {
@@ -194,7 +195,8 @@ describe('Treasures', () => {
         const { mapTable } = mainElems()
         const rows = within(mapTable).getAllByRole('row')
 
-        await editMap(rows[1], { point: [60, 70], grid: 'B2', quality: 20, notes: 'Edited notes' })
+        await editMap(rows[1],
+          { position: [60, 70], grid: 'B2', quality: 20, notes: 'Edited notes' })
       })
 
       it('should update the map in the table', () => {
@@ -235,9 +237,9 @@ describe('Treasures', () => {
       fireEvent.change(currPosX, { target: { value: '20' } })
       fireEvent.change(currPosY, { target: { value: '30' } })
 
-      await addMap({ point: [80, 90] })
-      await addMap({ point: [60, 70] })
-      await addMap({ point: [40, 50] })
+      await addMap({ position: [80, 90] })
+      await addMap({ position: [60, 70] })
+      await addMap({ position: [40, 50] })
     })
 
     it('should add all maps to the table', () => {
@@ -299,19 +301,19 @@ describe('Treasures', () => {
 })
 
 const addMap = async (map: TreasureMap) => {
-  const { addMapBtn, addLocationPopup } = mainElems()
+  const { addMapBtn, addMapPopup } = mainElems()
   fireEvent.click(addMapBtn)
 
-  submitPopupForm(await addLocationPopup, map)
+  submitPopupForm(await addMapPopup, map)
 }
 
 const editMap = async (row: HTMLElement, map: TreasureMap) => {
-  const { editLocationPopup } = mainElems()
+  const { editMapPopup } = mainElems()
   const { editBtn } = rowElems(row)
 
   fireEvent.click(editBtn)
 
-  submitPopupForm(await editLocationPopup, map)
+  submitPopupForm(await editMapPopup, map)
 }
 
 const claimMap = async (row: HTMLElement) => {
@@ -325,7 +327,7 @@ const claimMap = async (row: HTMLElement) => {
 }
 
 const replaceMap = async (row: HTMLElement, map: TreasureMap) => {
-  const { claimPopup, editLocationPopup } = mainElems()
+  const { claimPopup, editMapPopup } = mainElems()
   const { claimBtn } = rowElems(row)
   fireEvent.click(claimBtn)
 
@@ -333,14 +335,14 @@ const replaceMap = async (row: HTMLElement, map: TreasureMap) => {
   const { newMapBtn } = claimElems(popup)
   fireEvent.click(newMapBtn)
 
-  submitPopupForm(await editLocationPopup, map)
+  submitPopupForm(await editMapPopup, map)
 }
 
 const submitPopupForm = (popup: HTMLElement, map: TreasureMap) => {
   const { x, y, grid, quality, notes, submitBtn } = dialogElems(popup)
 
-  fireEvent.change(x, { target: { value: map.point[0] } })
-  fireEvent.change(y, { target: { value: map.point[1] } })
+  fireEvent.change(x, { target: { value: map.position[0] } })
+  fireEvent.change(y, { target: { value: map.position[1] } })
   fireEvent.change(grid, { target: { value: map.grid } })
   fireEvent.change(quality, { target: { value: map.quality } })
   fireEvent.change(notes, { target: { value: map.notes } })
@@ -353,11 +355,11 @@ const mainElems = () => ({
   get currPosY() { return screen.getByPlaceholderText('y') },
   get addMapBtn() { return screen.getByRole('button', { name: /Add Map/i }) },
   get mapTable() { return screen.getByRole('table') },
-  get addLocationPopup() {
-    return screen.findByRole('dialog', { name: /Add Location/i, hidden: true })
+  get addMapPopup() {
+    return screen.findByRole('dialog', { name: /Add Map/i, hidden: true })
   },
-  get editLocationPopup() {
-    return screen.findByRole('dialog', { name: /Edit Location/i, hidden: true })
+  get editMapPopup() {
+    return screen.findByRole('dialog', { name: /Edit Map/i, hidden: true })
   },
   get claimPopup() {
     return screen.findByRole('dialog', { description: /What did you find/i, hidden: true })

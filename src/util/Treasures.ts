@@ -1,7 +1,7 @@
 import { Point } from '../Domain'
 
 export interface TreasureMap {
-  point: Point
+  position: Point
   distance?: number
   grid?: string
   quality?: number

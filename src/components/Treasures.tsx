@@ -49,16 +49,16 @@ export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const { isOpen: isReplaceOpen, onOpen: onReplaceOpen, onClose: onReplaceClose } = useDisclosure()
-  const [ locations, setLocations ] = useState<TreasureMap[]>(
+  const [ maps, setMaps ] = useState<TreasureMap[]>(
     () => load(LocalStorageKey.TREASURE_MAPS) ?? [])
   const [ editIndex, setEditIndex ] = useState<number>()
-  const [ currLocation, setCurrLocation ] = useState<Point | undefined>(
+  const [ currPosition, setCurrPosition ] = useState<Point | undefined>(
     () => load(LocalStorageKey.CURRENT_POSITION))
   const [ server, setServer ] = useState<Server>(
     () => load(LocalStorageKey.SERVER) ?? Server.XANADU)
 
   const deleteAll = useCallback(() => {
-    setLocations([])
+    setMaps([])
     remove(LocalStorageKey.TREASURE_MAPS)
   }, [])
 
@@ -68,54 +68,54 @@ export default function Treasures() {
     save(LocalStorageKey.SERVER, server)
   }, [])
 
-  const updateLocations = useCallback((locations: TreasureMap[], currLocation?: Point) => {
-    if (!currLocation) return
-    const newLocations = locations
-      .map(location => ({
-        ...location,
-        distance: calcDistance(currLocation, location.point)
+  const updateMaps = useCallback((maps: TreasureMap[], currPosition?: Point) => {
+    if (!currPosition) return
+    const newMaps = maps
+      .map(map => ({
+        ...map,
+        distance: calcDistance(currPosition, map.position)
       }))
       .sort((a, b) => a.distance - b.distance)
-    setLocations(newLocations)
-    save(LocalStorageKey.TREASURE_MAPS, newLocations)
+    setMaps(newMaps)
+    save(LocalStorageKey.TREASURE_MAPS, newMaps)
   }, [])
 
-  const updateCurrLocation = useCallback((point: Point) => {
-    setCurrLocation(point)
-    save(LocalStorageKey.CURRENT_POSITION, point)
-    updateLocations(locations, point)
-  }, [locations, updateLocations])
+  const updateCurrPosition = useCallback((position: Point) => {
+    setCurrPosition(position)
+    save(LocalStorageKey.CURRENT_POSITION, position)
+    updateMaps(maps, position)
+  }, [maps, updateMaps])
 
-  const onAdd = useCallback((location: TreasureMap) => {
-    updateLocations([...locations, location ], currLocation)
-  }, [currLocation, locations, updateLocations])
+  const onAdd = useCallback((map: TreasureMap) => {
+    updateMaps([...maps, map ], currPosition)
+  }, [currPosition, maps, updateMaps])
 
-  const onEdit = useCallback((location: TreasureMap, index: number | undefined) => {
+  const onEdit = useCallback((map: TreasureMap, index: number | undefined) => {
     if (index === undefined) return
-    const newLocations = [...locations]
-    newLocations[index] = location
-    updateLocations(newLocations, currLocation)
-  }, [currLocation, locations, updateLocations])
+    const newMaps = [...maps]
+    newMaps[index] = map
+    updateMaps(newMaps, currPosition)
+  }, [currPosition, maps, updateMaps])
 
   const onDelete = useCallback((index: number | undefined) => {
     if (index === undefined) return
-    const newLocations = [...locations]
-    newLocations.splice(index, 1)
-    updateLocations(newLocations, currLocation)
+    const newMaps = [...maps]
+    newMaps.splice(index, 1)
+    updateMaps(newMaps, currPosition)
     setEditIndex(undefined)
     onEditClose()
-  }, [currLocation, locations, onEditClose, updateLocations])
+  }, [currPosition, maps, onEditClose, updateMaps])
 
   const onReplace = useCallback((
-    location: TreasureMap,
+    map: TreasureMap,
     index: number | undefined,
     currLocation: Point) => {
     if (index === undefined) return
-    const newLocations = [...locations]
-    newLocations[index] = location
-    updateCurrLocation(currLocation)
-    updateLocations(newLocations, currLocation)
-  }, [locations, updateCurrLocation, updateLocations])
+    const newMaps = [...maps]
+    newMaps[index] = map
+    updateCurrPosition(currLocation)
+    updateMaps(newMaps, currLocation)
+  }, [maps, updateCurrPosition, updateMaps])
 
   return (
     <Box padding={8} maxWidth={800}>
@@ -146,45 +146,45 @@ export default function Treasures() {
         <FormControl isRequired>
           <FormLabel>Current Location (x, y)</FormLabel>
           <PointInput
-            point={currLocation}
-            onChange={updateCurrLocation} />
+            point={currPosition}
+            onChange={updateCurrPosition} />
         </FormControl>
       </SimpleGrid>
       <Flex marginBottom={4} gap={2}>
         <Button
           colorScheme='teal'
           onClick={onAddOpen}
-          isDisabled={!currLocation || !server}>
+          isDisabled={!currPosition || !server}>
           Add Map
         </Button>
-        <DeleteAllButton onDeleteAll={deleteAll} isDisabled={locations.length === 0}/>
+        <DeleteAllButton onDeleteAll={deleteAll} isDisabled={maps.length === 0}/>
       </Flex>
-      <LocationModal
+      <MapModal
         isOpen={isAddOpen}
         onSave={onAdd}
         onClose={onAddClose}
         key={'add' + (isAddOpen ? 'Open' : 'Closed')}/>
-      <LocationModal
+      <MapModal
         key={'edit' + editIndex}
         isOpen={isEditOpen}
-        location={editIndex !== undefined ? locations[editIndex] : undefined}
-        onSave={(location) => onEdit(location, editIndex)}
+        map={editIndex !== undefined ? maps[editIndex] : undefined}
+        onSave={(map) => onEdit(map, editIndex)}
         onClose={() => {
           setEditIndex(undefined)
           onEditClose()
         }}/>
-      <LocationModal
+      <MapModal
         key={'replace' + editIndex}
         isOpen={isReplaceOpen}
-        location={editIndex !== undefined
+        map={editIndex !== undefined
           ? {
-            ...locations[editIndex],
-            point: undefined,
+            ...maps[editIndex],
+            position: undefined,
             grid: undefined
           }
           : undefined}
-        onSave={(location) => editIndex !== undefined
-          && onReplace(location, editIndex, locations[editIndex].point)}
+        onSave={(map) => editIndex !== undefined
+          && onReplace(map, editIndex, maps[editIndex].position)}
         onClose={() => {
           setEditIndex(undefined)
           onReplaceClose()
@@ -193,7 +193,7 @@ export default function Treasures() {
         <Table variant='simple' size='sm'>
           <Thead>
             <Tr>
-              <Th>Location (x, y)</Th>
+              <Th>Position (x, y)</Th>
               <Th>Quality</Th>
               <Th>Distance</Th>
               <Th>Notes</Th>
@@ -201,14 +201,14 @@ export default function Treasures() {
             </Tr>
           </Thead>
           <Tbody>
-            {locations.map(({ point, distance, grid, quality, notes }, index) => (
+            {maps.map(({ position, distance, grid, quality, notes }, index) => (
               <Tr key={index}>
                 <Td>
                   <ChakraLink
                     color='teal'
-                    href={`${MAP_HOSTS[server]}/#${point[0]},${point[1]}`}
+                    href={`${MAP_HOSTS[server]}/#${position[0]},${position[1]}`}
                     target='_blank'>
-                    ({point[0]}, {point[1]}) {grid && ` - ${grid}`}
+                    ({position[0]}, {position[1]}) {grid && ` - ${grid}`}
                   </ChakraLink>
                 </Td>
                 <Td>{quality}</Td>
@@ -221,7 +221,7 @@ export default function Treasures() {
                   <Flex justifyContent='center' gap={2}>
                     <ClaimButton
                       onFindTreasure={() => {
-                        updateCurrLocation(point)
+                        updateCurrPosition(position)
                         onDelete(index)
                       }}
                       onFindMap={() => {
@@ -258,28 +258,28 @@ export default function Treasures() {
   )
 }
 
-type PartialMap = Omit<TreasureMap, 'point'> & { point?: Point }
-function LocationModal({ isOpen, location: editLocation, onSave, onClose }: {
+type PartialMap = Omit<TreasureMap, 'position'> & { position?: Point }
+function MapModal({ isOpen, map: editMap, onSave, onClose }: {
   isOpen: boolean,
-  location?: PartialMap,
+  map?: PartialMap,
   onSave: (location: TreasureMap) => void,
   onClose: () => void,
 }) {
-  const [location, setLocation ] = useState<PartialMap>({
-    ...editLocation,
+  const [map, setMap ] = useState<PartialMap>({
+    ...editMap,
   })
-  const { point, grid, quality, notes } = location
+  const { position, grid, quality, notes } = map
 
   const onSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!location.point) return
-    onSave({ ...location, point: location.point })
+    if (!map.position) return
+    onSave({ ...map, position: map.position })
     onClose()
-  }, [location, onSave, onClose])
+  }, [map, onSave, onClose])
 
-  const onFieldChange = useCallback((key: string, value: string | number | Point) => {
-    setLocation(oldLocation => ({
-      ...oldLocation,
+  const onFieldChange = useCallback((key: keyof PartialMap, value: string | number | Point) => {
+    setMap(oldMap => ({
+      ...oldMap,
       [key]: value
     }))
   }, [])
@@ -288,15 +288,15 @@ function LocationModal({ isOpen, location: editLocation, onSave, onClose }: {
     <Modal size='sm' isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{editLocation ? 'Edit Location' : 'Add Location'}</ModalHeader>
+        <ModalHeader>{editMap ? 'Edit Map' : 'Add Map'}</ModalHeader>
         <ModalCloseButton />
         <Box as='form' onSubmit={onSubmit}>
           <ModalBody>
             <FormControl marginBottom={4} isRequired>
-              <FormLabel>Coordinate (x, y)</FormLabel>
+              <FormLabel>Position (x, y)</FormLabel>
               <PointInput
-                point={point}
-                onChange={(point) => onFieldChange('point', point)}/>
+                point={position}
+                onChange={(point) => onFieldChange('position', point)}/>
             </FormControl>
             <FormControl marginBottom={4}>
               <Input
@@ -323,7 +323,7 @@ function LocationModal({ isOpen, location: editLocation, onSave, onClose }: {
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button type='submit' colorScheme='blue' mr={3}>{editLocation ? 'Save' : 'Add'}</Button>
+            <Button type='submit' colorScheme='blue' mr={3}>{editMap ? 'Save' : 'Add'}</Button>
             <Button variant='ghost' onClick={onClose}>Close</Button>
           </ModalFooter>
         </Box>
