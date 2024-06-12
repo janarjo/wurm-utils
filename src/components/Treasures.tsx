@@ -40,6 +40,7 @@ import { Link as ReactRouterLink } from 'react-router-dom'
 import { useCallback, useState } from 'react'
 import { TreasureMap } from '../util/Treasures'
 import { MAP_HOSTS, Point, Server } from '../Domain'
+import { LocalStorageKey, load, remove, save } from '../Storage'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
 import { calcDistance } from '../util/Common'
@@ -48,10 +49,24 @@ export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
   const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure()
   const { isOpen: isReplaceOpen, onOpen: onReplaceOpen, onClose: onReplaceClose } = useDisclosure()
-  const [ locations, setLocations ] = useState<TreasureMap[]>([])
+  const [ locations, setLocations ] = useState<TreasureMap[]>(
+    () => load(LocalStorageKey.TREASURE_MAPS) ?? [])
   const [ editIndex, setEditIndex ] = useState<number>()
-  const [ currLocation, setCurrLocation ] = useState<Point>()
-  const [ server, setServer ] = useState<Server>(Server.XANADU)
+  const [ currLocation, setCurrLocation ] = useState<Point | undefined>(
+    () => load(LocalStorageKey.CURRENT_POSITION))
+  const [ server, setServer ] = useState<Server>(
+    () => load(LocalStorageKey.SERVER) ?? Server.XANADU)
+
+  const deleteAll = useCallback(() => {
+    setLocations([])
+    remove(LocalStorageKey.TREASURE_MAPS)
+  }, [])
+
+  const updateServer = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const server = event.target.value as Server
+    setServer(server)
+    save(LocalStorageKey.SERVER, server)
+  }, [])
 
   const updateLocations = useCallback((locations: TreasureMap[], currLocation?: Point) => {
     if (!currLocation) return
@@ -62,10 +77,12 @@ export default function Treasures() {
       }))
       .sort((a, b) => a.distance - b.distance)
     setLocations(newLocations)
+    save(LocalStorageKey.TREASURE_MAPS, newLocations)
   }, [])
 
   const updateCurrLocation = useCallback((point: Point) => {
     setCurrLocation(point)
+    save(LocalStorageKey.CURRENT_POSITION, point)
     updateLocations(locations, point)
   }, [locations, updateLocations])
 
@@ -96,9 +113,9 @@ export default function Treasures() {
     if (index === undefined) return
     const newLocations = [...locations]
     newLocations[index] = location
-    setCurrLocation(currLocation)
+    updateCurrLocation(currLocation)
     updateLocations(newLocations, currLocation)
-  }, [locations, updateLocations])
+  }, [locations, updateCurrLocation, updateLocations])
 
   return (
     <Box padding={8} maxWidth={800}>
@@ -118,7 +135,7 @@ export default function Treasures() {
       <SimpleGrid columns={2} spacing={4} marginBottom={4}>
         <FormControl isRequired>
           <FormLabel>Server</FormLabel>
-          <Select value={server} onChange={(event) => setServer(event.target.value as Server)}>
+          <Select value={server} onChange={updateServer}>
             {Object.keys(MAP_HOSTS).map(server => (
               <option key={server} value={server}>
                 {server.charAt(0) + server.slice(1).toLowerCase()}
@@ -133,13 +150,15 @@ export default function Treasures() {
             onChange={updateCurrLocation} />
         </FormControl>
       </SimpleGrid>
-      <Button
-        colorScheme='teal'
-        onClick={onAddOpen}
-        isDisabled={!currLocation || !server}
-        marginBottom={4}>
+      <Flex marginBottom={4} gap={2}>
+        <Button
+          colorScheme='teal'
+          onClick={onAddOpen}
+          isDisabled={!currLocation || !server}>
           Add Map
-      </Button>
+        </Button>
+        <DeleteAllButton onDeleteAll={deleteAll} isDisabled={locations.length === 0}/>
+      </Flex>
       <LocationModal
         isOpen={isAddOpen}
         onSave={onAdd}
@@ -316,7 +335,7 @@ function LocationModal({ isOpen, location: editLocation, onSave, onClose }: {
 function ClaimButton({ onFindTreasure, onFindMap }: {
     onFindTreasure: () => void,
     onFindMap: () => void
-  }) {
+}) {
   return (
     <Popover >
       {({ onClose }) => (
@@ -344,6 +363,47 @@ function ClaimButton({ onFindTreasure, onFindMap }: {
                 </Button>
                 <Button onClick={onFindMap}>
                   New Map
+                </Button>
+              </ButtonGroup>
+            </PopoverFooter>
+          </PopoverContent>
+        </>
+      )}
+    </Popover>
+  )
+}
+
+function DeleteAllButton({ isDisabled, onDeleteAll }: {
+  isDisabled: boolean,
+  onDeleteAll: () => void
+}) {
+  return (
+    <Popover>
+      {({ onClose }) => (
+        <>
+          <PopoverTrigger>
+            <Button
+              colorScheme='red'
+              isDisabled={isDisabled}>
+                Delete All
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody>
+              <Text>Are you sure you want to delete all treasure maps?</Text>
+            </PopoverBody>
+            <PopoverFooter>
+              <ButtonGroup size='sm'>
+                <Button colorScheme='red' onClick={() => {
+                  onDeleteAll()
+                  onClose()
+                }}>
+                  Yes
+                </Button>
+                <Button onClick={onClose}>
+                  No
                 </Button>
               </ButtonGroup>
             </PopoverFooter>

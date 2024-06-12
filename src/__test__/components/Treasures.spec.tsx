@@ -3,11 +3,14 @@ import '@testing-library/jest-dom'
 import Treasures from '../../components/Treasures'
 import { MemoryRouter } from 'react-router-dom'
 import { Server } from '../../Domain'
+import { LocalStorageKey } from '../../Storage'
 import { TreasureMap } from '../../util/Treasures'
 
 describe('Treasures', () => {
+  let renderOpts: ReturnType<typeof render>
   beforeEach(() => {
-    render(
+    window.localStorage.clear()
+    renderOpts = render(
       <MemoryRouter>
         <Treasures />
       </MemoryRouter>
@@ -99,6 +102,20 @@ describe('Treasures', () => {
       expect(cells[1]).toHaveTextContent('15')
       expect(cells[2]).toHaveTextContent('28')
       expect(cells[3]).toHaveTextContent('Some notes')
+    })
+
+    it('should persist the map in local storage', () => {
+      const stored = JSON.parse(window.localStorage.getItem(LocalStorageKey.TREASURE_MAPS) || '[]')
+      expect(stored).toHaveLength(1)
+
+      const storedMap = stored[0]
+      expect(storedMap).toMatchObject({
+        point: [40, 50],
+        grid: 'A1',
+        quality: '15',
+        distance: 28.284271247461902,
+        notes: 'Some notes',
+      })
     })
 
     describe('when pressing claim', () => {
@@ -252,8 +269,33 @@ describe('Treasures', () => {
         expect(distances).toEqual(['0', '28', '57'])
       })
     })
-  })
 
+    describe('when the page is reloaded', () => {
+      beforeEach(() => {
+        renderOpts.unmount()
+        render(
+          <MemoryRouter>
+            <Treasures />
+          </MemoryRouter>
+        )
+      })
+
+      it('should restore current position', () => {
+        const { currPosX, currPosY } = mainElems()
+        expect(currPosX).toHaveValue('20')
+        expect(currPosY).toHaveValue('30')
+      })
+
+      it('should restore maps', () => {
+        const { mapTable } = mainElems()
+        const rows = within(mapTable).getAllByRole('row')
+        expect(rows).toHaveLength(4)
+
+        const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[2].textContent)
+        expect(distances).toEqual(['28', '57', '85'])
+      })
+    })
+  })
 })
 
 const addMap = async (map: TreasureMap) => {
