@@ -18,6 +18,10 @@ jobs:
       run: |
         git config user.name 'github-actions'
         git config user.email 'github-actions@github.com'
+
+    - name: Get version from release tag
+      id: get_version
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
     
     - name: Merge develop into master
       run: |
@@ -25,10 +29,10 @@ jobs:
         git merge develop --no-ff
         git push origin master
 
-    - name: Create Release Tag
-      id: create_tag
+    - name: Bump version in package.json
       run: |
-        NEW_TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
-        echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-        git tag $NEW_TAG
-        git push origin $NEW_TAG
+        npm version $RELEASE_VERSION
+
+    - name: Push changes
+      run: |
+        git push origin master --follow-tags
