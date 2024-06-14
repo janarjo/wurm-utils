@@ -9,6 +9,10 @@ Currently includes:
 - **Treasure Hunter**: A tool to help you find treasure chests.
 - **Highway Calculator**: A tool to help you plan your highway construction.
 
+Coming soon:
+- **Bridge Calculator**: A tool to help you plan your bridge construction.
+- **Tunnel Calculator**: A tool to help you plan your tunnels.
+
 Technologies used:
 - [Vite](https://vitejs.dev/)
 - [React](https://reactjs.org/)
