@@ -1,8 +1,11 @@
 name: Release
 
 on:
-  release:
-    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
 
 jobs:
   release:
@@ -21,7 +24,7 @@ jobs:
 
     - name: Get version from release tag
       id: get_version
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      run: echo "RELEASE_VERSION=$(echo ${{ github.event.inputs.version }} | sed 's/^v//')" >> $GITHUB_ENV
 
     - name: Fetch branches
       run: |
