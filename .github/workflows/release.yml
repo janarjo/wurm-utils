@@ -27,9 +27,13 @@ jobs:
       run: |
         git fetch origin
 
+    - name: Checkout and create local develop
+      run: git checkout -b develop origin/develop
+
     - name: Merge develop into master
       run: |
-        git merge origin/develop --no-ff || git merge --abort
+        git checkout master
+        git merge develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
       run: |
@@ -42,9 +46,9 @@ jobs:
 
     - name: Merge master into develop
       run: |
-        git checkout origin/develop
+        git checkout develop
         git merge master --no-ff
 
     - name: Push changes to develop
       run: |
-        git push origin origin/develop
+        git push origin develop
