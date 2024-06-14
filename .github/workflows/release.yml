@@ -25,11 +25,11 @@ jobs:
 
     - name: Fetch branches
       run: |
-        git fetch origin master develop
+        git fetch origin
 
     - name: Merge develop into master
       run: |
-        git merge develop --no-ff || git merge --abort
+        git merge origin/develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
       run: |
@@ -42,9 +42,9 @@ jobs:
 
     - name: Merge master into develop
       run: |
-        git checkout develop
+        git checkout origin/develop
         git merge master --no-ff
 
     - name: Push changes to develop
       run: |
-        git push origin develop
+        git push origin origin/develop
