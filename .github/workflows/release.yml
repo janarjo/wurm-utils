@@ -8,8 +8,25 @@ on:
         required: true
 
 jobs:
+
+  check-branch:
+    runs-on: ubuntu-latest
+    outputs:
+      valid_branch: ${{ steps.check_branch.outputs.valid_branch }}
+
+    steps:
+      - name: Check if branch is master
+        id: check_branch
+        run: |
+          if [ "${GITHUB_REF##*/}" == "master" ]; then
+            echo "::set-output name=valid_branch::true"
+          else
+            echo "::set-output name=valid_branch::false"
+          fi
+
   release:
     runs-on: ubuntu-latest
+    needs: check-branch
 
     steps:
     - name: Checkout master
