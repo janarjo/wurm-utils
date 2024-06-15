@@ -53,3 +53,54 @@ jobs:
     - name: Push changes to develop
       run: |
         git push origin develop
+  
+  build:
+    runs-on: ubuntu-latest
+    needs: release
+    env:
+      CI: true
+    
+    steps:
+    - name: Checkout master
+      uses: actions/checkout@v4
+      with:
+        ref: master
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+    
+    - name: Install
+      run: npm ci
+    
+    - name: Lint
+      run: npm run lint
+    
+    - name: Test
+      run: npm test
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Upload build artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
