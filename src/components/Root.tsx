@@ -29,6 +29,11 @@ export default function Root() {
           </ChakraLink>
         </ListItem>
         <ListItem>
+          <ChakraLink as={ReactRouterLink} to='/tunnels' color='teal'>
+            Tunnel Calculator
+          </ChakraLink>
+        </ListItem>
+        <ListItem>
           <ChakraLink as={ReactRouterLink} to='/bridges' color='teal'>
             Bridge Calculator
           </ChakraLink>

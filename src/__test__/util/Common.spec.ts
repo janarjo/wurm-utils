@@ -1,5 +1,5 @@
 import { Line, Point } from '../../Domain'
-import { calcSegments, calcTileLength } from '../../util/Common'
+import { calcSegments, calcTileDistance } from '../../util/Common'
 
 describe('Segments', () => {
 
@@ -24,26 +24,26 @@ describe('Tiled length', () => {
 
   it('calculates line length correctly', () => {
     const line: Line = [[0, 0], [0, 10]]
-    expect(calcTileLength(line)).toEqual(10)
+    expect(calcTileDistance(line)).toEqual(10)
   })
 
   it('calculates line length correctly with 90 degree junction', () => {
     const line: Line = [[0, 0], [10, 0]]
-    expect(calcTileLength(line)).toEqual(10)
+    expect(calcTileDistance(line)).toEqual(10)
   })
 
   it('calculates line length correctly with 45 degree junction', () => {
     const line: Line = [[0, 0], [10, 10]]
-    expect(calcTileLength(line)).toEqual(10)
+    expect(calcTileDistance(line)).toEqual(10)
   })
 
   it('calculates line length correctly subtle angle', () => {
     const line: Line = [[0, 0], [10, 1]]
-    expect(calcTileLength(line)).toEqual(10)
+    expect(calcTileDistance(line)).toEqual(10)
   })
 
   it('calculates line length correctly with opposite subtle angle', () => {
     const line: Line = [[0, 0], [1, 10]]
-    expect(calcTileLength(line)).toEqual(10)
+    expect(calcTileDistance(line)).toEqual(10)
   })
 })
