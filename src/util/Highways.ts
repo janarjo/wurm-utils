@@ -1,5 +1,5 @@
 import { ItemCode, Line } from '../Domain'
-import { calcTileLength } from './Common'
+import { calcTileDistance } from './Common'
 
 export interface HighwayCost {
     totalMats: Map<ItemCode, number>
@@ -7,7 +7,7 @@ export interface HighwayCost {
 }
 
 export const calcTotalTileLength = (segments: Line[]) => segments
-  .reduce((acc, segment) => acc + calcTileLength(segment), 0)
+  .reduce((acc, segment) => acc + calcTileDistance(segment), 0)
 
 export function calcHighwayCost(
   segments: Line[],

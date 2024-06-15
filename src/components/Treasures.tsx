@@ -43,7 +43,7 @@ import { MAP_HOSTS, Point, Server } from '../Domain'
 import { LocalStorageKey, load, remove, save } from '../Storage'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
-import { calcDistance } from '../util/Common'
+import { calcRealDistance } from '../util/Common'
 
 export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
@@ -73,7 +73,7 @@ export default function Treasures() {
     const newMaps = maps
       .map(map => ({
         ...map,
-        distance: calcDistance(currPosition, map.position)
+        distance: calcRealDistance([currPosition, map.position])
       }))
       .sort((a, b) => a.distance - b.distance)
     setMaps(newMaps)

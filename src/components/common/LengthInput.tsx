@@ -15,7 +15,7 @@ import NumberInput, { NumberInputProps } from './NumberInput'
 import PointsInput from './PointsInput'
 import { useCallback, useState } from 'react'
 import { Point } from '../../Domain'
-import { calcDistance } from '../../util/Common'
+import { calcTileDistance } from '../../util/Common'
 
 export interface LengthInputProps extends NumberInputProps {
   maxPoints?: number
@@ -38,7 +38,7 @@ export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInpu
     if (points.length < 2) return
     const length = points.reduce((acc, point, index) => {
       if (index === 0) return acc
-      return acc + calcDistance(points[index - 1], point)
+      return acc + calcTileDistance([points[index - 1], point])
     }, 0)
     onChange(Math.ceil(length).toString())
     setPoints([])
