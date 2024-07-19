@@ -28,6 +28,28 @@ export enum BridgeSection {
   BRACING = 'BRACING',
 }
 
+export const FLAT_BRIDGE_TYPES = [
+  BridgeType.FLAT_WOOD,
+  BridgeType.FLAT_STONE,
+  BridgeType.FLAT_MARBLE,
+  BridgeType.FLAT_SLATE,
+  BridgeType.FLAT_ROUNDED_STONE,
+  BridgeType.FLAT_POTTERY,
+  BridgeType.FLAT_SANDSTONE,
+  BridgeType.FLAT_RENDERED,
+]
+
+export const ARCHED_BRIDGE_TYPES = [
+  BridgeType.ARCHED_WOOD,
+  BridgeType.ARCHED_BRICK,
+  BridgeType.ARCHED_MARBLE,
+  BridgeType.ARCHED_SLATE,
+  BridgeType.ARCHED_ROUNDED_STONE,
+  BridgeType.ARCHED_POTTERY,
+  BridgeType.ARCHED_SANDSTONE,
+  BridgeType.ARCHED_RENDERED,
+]
+
 const getStandardFlatStoneBridgeCosts = (code: ItemCode) => ({
   [BridgeSection.SUPPORT]: [
     { code, amount: 172 },
@@ -134,7 +156,8 @@ export function calcBridgeCost(
   for (const section of sections) {
     const sectionMaterials = sectionCosts[section]
     if (!sectionMaterials) {
-      throw new Error(`Unspecified cost for bridge section ${section}`)
+      console.warn(`No cost specified for bridge section ${section}`)
+      continue
     }
 
     for (const { code, amount } of sectionMaterials) {
@@ -153,7 +176,7 @@ export function calcBridgeCost(
 // We need to first figure out the default placement of sections
 // Start and end sections must be abutments
 function calcBridgeSections(bridgeType: BridgeType, length: number): BridgeSection[] {
-  if (bridgeType === BridgeType.FLAT_WOOD) {
+  if (FLAT_BRIDGE_TYPES.includes(bridgeType)) {
     if (length === 1) {
       return [BridgeSection.DOUBLE_ABUTMENT]
     }
@@ -176,6 +199,26 @@ function calcBridgeSections(bridgeType: BridgeType, length: number): BridgeSecti
         BridgeSection.CROWN,
         BridgeSection.CROWN,
         BridgeSection.ABUTMENT]
+    }
+  }
+
+  if (ARCHED_BRIDGE_TYPES.includes(bridgeType)) {
+    if (length === 1) {
+      return [BridgeSection.DOUBLE_ABUTMENT]
+    }
+    if (length === 2) {
+      return [BridgeSection.ABUTMENT, BridgeSection.ABUTMENT]
+    }
+    if (length > 7) {
+      return [
+        BridgeSection.DOUBLE_ABUTMENT,
+        BridgeSection.SUPPORT,
+        BridgeSection.BRACING,
+        ... Array(length - 6).fill(BridgeSection.CROWN),
+        BridgeSection.BRACING,
+        BridgeSection.SUPPORT,
+        BridgeSection.DOUBLE_ABUTMENT
+      ]
     }
   }
 

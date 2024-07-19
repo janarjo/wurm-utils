@@ -18,3 +18,7 @@ export function calcRealDistance(line: Line): number {
   const [start, end] = line
   return Math.sqrt((start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2)
 }
+
+export const formatCode = (value: string) => {
+  return value.slice(0, 1) + value.slice(1).toLowerCase().replace(/_/g, ' ')
+}
