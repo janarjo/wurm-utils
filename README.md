@@ -20,7 +20,7 @@ Technologies used:
 
 ## Development
 
-Requires Node.js 20+.
+Requires Node.js 23+.
 
 1. Clone the repository
 2. Run `npm install`
