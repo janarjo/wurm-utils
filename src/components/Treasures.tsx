@@ -37,7 +37,7 @@ import {
   Select
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { TreasureMap } from '../util/Treasures'
 import { MAP_HOSTS, Point, Server } from '../Domain'
 import { LocalStorageKey, load, remove, save } from '../Storage'
@@ -56,6 +56,7 @@ export default function Treasures() {
     () => load(LocalStorageKey.CURRENT_POSITION))
   const [ server, setServer ] = useState<Server>(
     () => load(LocalStorageKey.SERVER) ?? Server.XANADU)
+  const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(undefined)
 
   const deleteAll = useCallback(() => {
     setMaps([])
@@ -118,143 +119,156 @@ export default function Treasures() {
   }, [maps, updateCurrPosition, updateMaps])
 
   return (
-    <Box padding={8} maxWidth={800}>
-      <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
-      <Box marginBottom={4}>
-        <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
+    <SimpleGrid columns={2} spacing={4} minChildWidth={650}>
+      <Box padding={8}>
+        <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
+        <Box marginBottom={4}>
+          <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
         by finding the closest treasure to your current location. 
         Your location will be updated with each treasure you claim.`}
-        </Text>
-        <Text>{`Simply add the locations of the treasures
+          </Text>
+          <Text>{`Simply add the locations of the treasures
         you want to find. The distances will be automatically calculated and sorted 
         by distance from your current location. Once you find a treasure ingame, claim it
         and it will be removed from the list and your location will be updated.
         Feel free to edit or delete any location whenever you'd like at any point.`}
-        </Text>
-      </Box>
-      <SimpleGrid columns={2} spacing={4} marginBottom={4}>
-        <FormControl isRequired>
-          <FormLabel>Server</FormLabel>
-          <Select value={server} onChange={updateServer}>
-            {Object.keys(MAP_HOSTS).map(server => (
-              <option key={server} value={server}>
-                {server.charAt(0) + server.slice(1).toLowerCase()}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl isRequired>
-          <FormLabel>Current Location (x, y)</FormLabel>
-          <PointInput
-            point={currPosition}
-            onChange={updateCurrPosition} />
-        </FormControl>
-      </SimpleGrid>
-      <Flex marginBottom={4} gap={2}>
-        <Button
-          colorScheme='teal'
-          onClick={onAddOpen}
-          isDisabled={!currPosition || !server}>
+          </Text>
+        </Box>
+        <SimpleGrid columns={2} spacing={4} marginBottom={4}>
+          <FormControl isRequired>
+            <FormLabel>Server</FormLabel>
+            <Select value={server} onChange={updateServer}>
+              {Object.keys(MAP_HOSTS).map(server => (
+                <option key={server} value={server}>
+                  {server.charAt(0) + server.slice(1).toLowerCase()}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Current Location (x, y)</FormLabel>
+            <PointInput
+              point={currPosition}
+              onChange={updateCurrPosition} />
+          </FormControl>
+        </SimpleGrid>
+        <Flex marginBottom={4} gap={2}>
+          <Button
+            colorScheme='teal'
+            onClick={onAddOpen}
+            isDisabled={!currPosition || !server}>
           Add Map
-        </Button>
-        <DeleteAllButton onDeleteAll={deleteAll} isDisabled={maps.length === 0}/>
-      </Flex>
-      <MapModal
-        isOpen={isAddOpen}
-        onSave={onAdd}
-        onClose={onAddClose}
-        key={'add' + (isAddOpen ? 'Open' : 'Closed')}/>
-      <MapModal
-        key={'edit' + editIndex}
-        isOpen={isEditOpen}
-        map={editIndex !== undefined ? maps[editIndex] : undefined}
-        onSave={(map) => onEdit(map, editIndex)}
-        onClose={() => {
-          setEditIndex(undefined)
-          onEditClose()
-        }}/>
-      <MapModal
-        key={'replace' + editIndex}
-        isOpen={isReplaceOpen}
-        map={editIndex !== undefined
-          ? {
-            ...maps[editIndex],
-            position: undefined,
-            grid: undefined
-          }
-          : undefined}
-        onSave={(map) => editIndex !== undefined
+          </Button>
+          <DeleteAllButton onDeleteAll={deleteAll} isDisabled={maps.length === 0}/>
+        </Flex>
+        <MapModal
+          isOpen={isAddOpen}
+          onSave={onAdd}
+          onClose={onAddClose}
+          key={'add' + (isAddOpen ? 'Open' : 'Closed')}/>
+        <MapModal
+          key={'edit' + editIndex}
+          isOpen={isEditOpen}
+          map={editIndex !== undefined ? maps[editIndex] : undefined}
+          onSave={(map) => onEdit(map, editIndex)}
+          onClose={() => {
+            setEditIndex(undefined)
+            onEditClose()
+          }}/>
+        <MapModal
+          key={'replace' + editIndex}
+          isOpen={isReplaceOpen}
+          map={editIndex !== undefined
+            ? {
+              ...maps[editIndex],
+              position: undefined,
+              grid: undefined
+            }
+            : undefined}
+          onSave={(map) => editIndex !== undefined
           && onReplace(map, editIndex, maps[editIndex].position)}
-        onClose={() => {
-          setEditIndex(undefined)
-          onReplaceClose()
-        }}/>
-      <TableContainer marginBottom={8}>
-        <Table variant='simple' size='sm'>
-          <Thead>
-            <Tr>
-              <Th>Position (x, y)</Th>
-              <Th>Quality</Th>
-              <Th>Distance</Th>
-              <Th>Notes</Th>
-              <Th></Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {maps.map(({ position, distance, grid, quality, notes }, index) => (
-              <Tr key={index}>
-                <Td>
-                  <ChakraLink
-                    color='teal'
-                    href={`${MAP_HOSTS[server]}/#${position[0]},${position[1]}`}
-                    target='_blank'>
-                    ({position[0]}, {position[1]}) {grid && ` - ${grid}`}
-                  </ChakraLink>
-                </Td>
-                <Td>{quality}</Td>
-                <Td>{distance?.toFixed(0) ?? '???'}</Td>
-                <Td maxWidth={150}>
-                  <Tooltip label={notes}><Text noOfLines={1}>{notes}</Text>
-                  </Tooltip>
-                </Td>
-                <Td maxWidth={175}>
-                  <Flex justifyContent='center' gap={2}>
-                    <ClaimButton
-                      onFindTreasure={() => {
-                        updateCurrPosition(position)
-                        onDelete(index)
-                      }}
-                      onFindMap={() => {
-                        setEditIndex(index)
-                        onReplaceOpen()
-                      }}
-                    />
-                    <Button
-                      flexGrow={1}
-                      size={'sm'}
-                      colorScheme='blue'
-                      onClick={() => {
-                        setEditIndex(index)
-                        onEditOpen()
-                      }}>
-                      Edit
-                    </Button>
-                    <Button
-                      flexGrow={1}
-                      size={'sm'}
-                      colorScheme='red'
-                      onClick={() => onDelete(index)}>
-                      Delete
-                    </Button>
-                  </Flex>
-                </Td>
+          onClose={() => {
+            setEditIndex(undefined)
+            onReplaceClose()
+          }}/>
+        <TableContainer marginBottom={8}>
+          <Table variant='simple' size='sm'>
+            <Thead>
+              <Tr>
+                <Th>Position (x, y)</Th>
+                <Th>Quality</Th>
+                <Th>Distance</Th>
+                <Th>Notes</Th>
+                <Th></Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </TableContainer>
-      <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
-    </Box>
+            </Thead>
+            <Tbody>
+              {maps.map(({ position, distance, grid, quality, notes }, index) => (
+                <Tr key={index} background={hoveredIndex === index ? '#E3F2FD' : undefined}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(undefined)}
+                >
+                  <Td>
+                    <ChakraLink
+                      color='teal'
+                      href={`${MAP_HOSTS[server]}/#${position[0]},${position[1]}`}
+                      target='_blank'>
+                    ({position[0]}, {position[1]}) {grid && ` - ${grid}`}
+                    </ChakraLink>
+                  </Td>
+                  <Td>{quality}</Td>
+                  <Td>{distance?.toFixed(0) ?? '???'}</Td>
+                  <Td maxWidth={150}>
+                    <Tooltip label={notes}><Text noOfLines={1}>{notes}</Text>
+                    </Tooltip>
+                  </Td>
+                  <Td maxWidth={175}>
+                    <Flex justifyContent='center' gap={2}>
+                      <ClaimButton
+                        onFindTreasure={() => {
+                          updateCurrPosition(position)
+                          onDelete(index)
+                        }}
+                        onFindMap={() => {
+                          setEditIndex(index)
+                          onReplaceOpen()
+                        }}
+                      />
+                      <Button
+                        flexGrow={1}
+                        size={'sm'}
+                        colorScheme='blue'
+                        onClick={() => {
+                          setEditIndex(index)
+                          onEditOpen()
+                        }}>
+                      Edit
+                      </Button>
+                      <Button
+                        flexGrow={1}
+                        size={'sm'}
+                        colorScheme='red'
+                        onClick={() => onDelete(index)}>
+                      Delete
+                      </Button>
+                    </Flex>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+        <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
+      </Box>
+      <Box padding={8}>
+        <Minimap
+          position={currPosition}
+          maps={maps}
+          hoveredIndex={hoveredIndex}
+          onHover={setHoveredIndex}
+        />
+      </Box>
+    </SimpleGrid>
   )
 }
 
@@ -411,5 +425,72 @@ function DeleteAllButton({ isDisabled, onDeleteAll }: {
         </>
       )}
     </Popover>
+  )
+}
+
+function Minimap({ position, maps, hoveredIndex, onHover }: {
+  position: Point | undefined
+  maps: TreasureMap[]
+  hoveredIndex?: number
+  onHover: (index?: number) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, height]  = [600, 600]
+
+  const boundingPoints = [position, ...maps.map(t => t.position)].filter(Boolean) as Point[]
+  const minX = Math.min(...boundingPoints.map(point => point[0])) - 300
+  const maxX = Math.max(...boundingPoints.map(point => point[0])) + 300
+  const minY = Math.min(...boundingPoints.map(point => point[1])) - 300
+  const maxY = Math.max(...boundingPoints.map(point => point[1])) + 300
+
+  const scale = Math.min(width / (maxX - minX), height / (maxY - minY))
+  const translate = (point: Point) => [
+    (point[0] - minX) * scale,
+    height - (point[1] - minY) * scale
+  ]
+
+  return (
+    <Box ref={containerRef} width='100%' height='100%' position='relative'>
+      <svg width={width} height={height} style={{
+        background: '#E3F2FD',
+        borderRadius: 16,
+        border: '2px solid #e2e8f0'
+      }}>
+        {[1 / 5, 2 / 5, 3 / 5, 4 / 5].map((fraction, i) => (
+          <g key={i} stroke="#90A4AE" strokeWidth="1" opacity="0.4">
+            <line x1={fraction * width} y1="0" x2={fraction * width} y2={height} />
+            <line x1="0" y1={fraction * height} x2={width} y2={fraction * height} />
+          </g>
+        ))}
+        {maps.map(({ position }, index) => {
+          const [x, y] = translate(position)
+          const isHovered = hoveredIndex === index
+          return (
+            <g key={position.join()}>
+              <circle
+                cx={x}
+                cy={y}
+                r={6}
+                fill={isHovered ?  '#63AEDD' : '#3182CE'}
+                onMouseEnter={() => onHover(index)}
+                onMouseLeave={() => onHover(undefined)}
+              />
+              <title>{`(${position[0]}, ${position[1]})`}</title>
+            </g>
+          )
+        })}
+        {position && (
+          <circle
+            cx={translate(position)[0]}
+            cy={translate(position)[1]}
+            r={6}
+            fill='#E53E3E'/>
+        )}
+        <rect x={10} y={10} width={120} height={50} fill="white" stroke="#B0BEC5" strokeWidth="1" />
+        <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
+        <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Location</text>
+        <text x={15} y={50} fontSize="10" fill="#3182CE">- Map Position</text>
+      </svg>
+    </Box>
   )
 }
