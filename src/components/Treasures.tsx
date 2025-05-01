@@ -446,7 +446,7 @@ function Minimap({ position, maps, hoveredIndex, onHover }: {
   const scale = Math.min(width / (maxX - minX), height / (maxY - minY))
   const translate = (point: Point) => [
     (point[0] - minX) * scale,
-    height - (point[1] - minY) * scale
+    (point[1] - minY) * scale
   ]
 
   return (
