@@ -72,11 +72,11 @@ describe('Treasures', () => {
       const { mapTable } = mainElems()
       const headers = within(mapTable).getAllByRole('columnheader')
 
-      expect(headers).toHaveLength(5)
-      expect(headers[0]).toHaveTextContent('Position (x, y)')
-      expect(headers[1]).toHaveTextContent('Quality')
-      expect(headers[2]).toHaveTextContent('Distance')
-      expect(headers[3]).toHaveTextContent('Notes')
+      expect(headers).toHaveLength(6)
+      expect(headers[1]).toHaveTextContent('Position (x, y)')
+      expect(headers[2]).toHaveTextContent('Quality')
+      expect(headers[3]).toHaveTextContent('Distance')
+      expect(headers[4]).toHaveTextContent('Notes')
     })
 
     it('should have appropriate buttons', () => {
@@ -98,10 +98,14 @@ describe('Treasures', () => {
       const addedRow = rows[1]
       const cells = within(addedRow).getAllByRole('cell')
 
-      expect(cells[0]).toHaveTextContent('(40, 50) - A1')
-      expect(cells[1]).toHaveTextContent('15')
-      expect(cells[2]).toHaveTextContent('28')
-      expect(cells[3]).toHaveTextContent('Some notes')
+      const radio = within(addedRow).getByRole('radio')
+      expect(cells[0]).toContainElement(radio)
+      expect(radio).toBeChecked()
+
+      expect(cells[1]).toHaveTextContent('(40, 50) - A1')
+      expect(cells[2]).toHaveTextContent('15')
+      expect(cells[3]).toHaveTextContent('28')
+      expect(cells[4]).toHaveTextContent('Some notes')
     })
 
     it('should persist the map in local storage', () => {
@@ -183,10 +187,10 @@ describe('Treasures', () => {
         const updatedRow = rows[1]
         const cells = within(updatedRow).getAllByRole('cell')
 
-        expect(cells[0]).toHaveTextContent('(80, 90) - B2')
-        expect(cells[1]).toHaveTextContent('20')
-        expect(cells[2]).toHaveTextContent('57')
-        expect(cells[3]).toHaveTextContent('New notes')
+        expect(cells[1]).toHaveTextContent('(80, 90) - B2')
+        expect(cells[2]).toHaveTextContent('20')
+        expect(cells[3]).toHaveTextContent('57')
+        expect(cells[4]).toHaveTextContent('New notes')
       })
     })
 
@@ -208,10 +212,10 @@ describe('Treasures', () => {
         const updatedRow = rows[1]
         const cells = within(updatedRow).getAllByRole('cell')
 
-        expect(cells[0]).toHaveTextContent('(60, 70) - B2')
-        expect(cells[1]).toHaveTextContent('20')
-        expect(cells[2]).toHaveTextContent('57')
-        expect(cells[3]).toHaveTextContent('Edited notes')
+        expect(cells[1]).toHaveTextContent('(60, 70) - B2')
+        expect(cells[2]).toHaveTextContent('20')
+        expect(cells[3]).toHaveTextContent('57')
+        expect(cells[4]).toHaveTextContent('Edited notes')
       })
     })
 
@@ -252,7 +256,7 @@ describe('Treasures', () => {
       const { mapTable } = mainElems()
       const rows = within(mapTable).getAllByRole('row')
 
-      const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[2].textContent)
+      const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[3].textContent)
       expect(distances).toEqual(['28', '57', '85'])
     })
 
@@ -267,7 +271,7 @@ describe('Treasures', () => {
         const { mapTable } = mainElems()
         const rows = within(mapTable).getAllByRole('row')
 
-        const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[2].textContent)
+        const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[3].textContent)
         expect(distances).toEqual(['0', '28', '57'])
       })
     })
@@ -293,7 +297,7 @@ describe('Treasures', () => {
         const rows = within(mapTable).getAllByRole('row')
         expect(rows).toHaveLength(4)
 
-        const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[2].textContent)
+        const distances = rows.slice(1).map(row => within(row).getAllByRole('cell')[3].textContent)
         expect(distances).toEqual(['28', '57', '85'])
       })
     })

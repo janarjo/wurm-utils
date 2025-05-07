@@ -38,6 +38,7 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  Radio,
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { useCallback, useRef, useState } from 'react'
@@ -60,9 +61,11 @@ export default function Treasures() {
   const [ server, setServer ] = useState<Server>(
     () => load(LocalStorageKey.SERVER) ?? Server.XANADU)
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(undefined)
+  const [targetIndex, setTargetIndex] = useState<number>(0)
 
   const deleteAll = useCallback(() => {
     setMaps([])
+    setTargetIndex(0)
     remove(LocalStorageKey.TREASURE_MAPS)
   }, [])
 
@@ -103,23 +106,30 @@ export default function Treasures() {
 
   const onDelete = useCallback((index: number | undefined) => {
     if (index === undefined) return
+
     const newMaps = [...maps]
     newMaps.splice(index, 1)
     updateMaps(newMaps, currPosition)
+
     setEditIndex(undefined)
+    if (index === targetIndex) setTargetIndex(0)
+
     onEditClose()
-  }, [currPosition, maps, onEditClose, updateMaps])
+  }, [currPosition, maps, onEditClose, targetIndex, updateMaps])
 
   const onReplace = useCallback((
     map: TreasureMap,
     index: number | undefined,
     currLocation: Point) => {
     if (index === undefined) return
+
     const newMaps = [...maps]
     newMaps[index] = map
     updateCurrPosition(currLocation)
     updateMaps(newMaps, currLocation)
-  }, [maps, updateCurrPosition, updateMaps])
+
+    if (index === targetIndex) setTargetIndex(0)
+  }, [maps, targetIndex, updateCurrPosition, updateMaps])
 
   return (
     <SimpleGrid columns={2} spacing={4} minChildWidth={650}>
@@ -203,7 +213,7 @@ export default function Treasures() {
             }
             : undefined}
           onSave={(map) => editIndex !== undefined
-          && onReplace(map, editIndex, maps[editIndex].position)}
+            && onReplace(map, editIndex, maps[editIndex].position)}
           onClose={() => {
             setEditIndex(undefined)
             onReplaceClose()
@@ -212,6 +222,7 @@ export default function Treasures() {
           <Table variant='simple' size='sm'>
             <Thead>
               <Tr>
+                <Th></Th>
                 <Th>Position (x, y)</Th>
                 <Th>Quality</Th>
                 <Th>Distance</Th>
@@ -225,6 +236,14 @@ export default function Treasures() {
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(undefined)}
                 >
+                  <Td width={50} textAlign='center'>
+                    <Radio
+                      colorScheme='teal'
+                      isChecked={targetIndex === index}
+                      onClick={() => { setTargetIndex(index) }}
+                      title='Set as target'>
+                    </Radio>
+                  </Td>
                   <Td>
                     <ChakraLink
                       color='teal'
@@ -281,6 +300,7 @@ export default function Treasures() {
           position={currPosition}
           maps={maps}
           hoveredIndex={hoveredIndex}
+          targetIndex={targetIndex}
           onHover={setHoveredIndex}
         />
       </Box>
@@ -444,11 +464,12 @@ function DeleteAllButton({ onDeleteAll, count }: {
   )
 }
 
-function Minimap({ position, maps, hoveredIndex, onHover }: {
+function Minimap({ position, maps, hoveredIndex, onHover, targetIndex }: {
   position: Point | undefined
   maps: TreasureMap[]
   hoveredIndex?: number
   onHover: (index?: number) => void
+  targetIndex?: number
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, height]  = [600, 600]
@@ -481,13 +502,16 @@ function Minimap({ position, maps, hoveredIndex, onHover }: {
         {maps.map(({ position }, index) => {
           const [x, y] = translate(position)
           const isHovered = hoveredIndex === index
+          const isTarget = targetIndex === index
+          const color = isTarget ? '#319795' : '#3182CE'
           return (
             <g key={position.join()}>
               <circle
                 cx={x}
                 cy={y}
                 r={6}
-                fill={isHovered ?  '#63AEDD' : '#3182CE'}
+                fill={color}
+                opacity={isHovered ? 0.5 : 1}
                 onMouseEnter={() => onHover(index)}
                 onMouseLeave={() => onHover(undefined)}
               />
@@ -502,10 +526,11 @@ function Minimap({ position, maps, hoveredIndex, onHover }: {
             r={6}
             fill='#E53E3E'/>
         )}
-        <rect x={10} y={10} width={120} height={50} fill="white" stroke="#B0BEC5" strokeWidth="1" />
+        <rect x={10} y={10} width={120} height={60} fill="white" stroke="#B0BEC5" strokeWidth="1" />
         <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
         <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Position</text>
-        <text x={15} y={50} fontSize="10" fill="#3182CE">- Treasure Position</text>
+        <text x={15} y={50} fontSize="10" fill="#3182CE">- All Treasures</text>
+        <text x={15} y={60} fontSize="10" fill="#319795">- Target Treasure</text>
       </svg>
     </Box>
   )
