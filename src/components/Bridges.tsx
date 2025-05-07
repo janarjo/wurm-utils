@@ -1,7 +1,6 @@
 import {
   Box,
   Heading,
-  Link as ChakraLink,
   FormControl,
   FormLabel,
   SimpleGrid,
@@ -11,6 +10,9 @@ import {
   CardBody,
   CardHeader,
   Text,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
 } from '@chakra-ui/react'
 import { useCallback, useState } from 'react'
 import { Link as ReactRouterLink } from 'react-router-dom'
@@ -41,6 +43,18 @@ export default function Bridges() {
 
   return (
     <Box padding={8} maxWidth={600}>
+      <Breadcrumb size='sm' marginBottom={4}>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={ReactRouterLink} to='/'>
+            Home
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink as={ReactRouterLink} to='/bridges'>
+            Bridges
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
       <Heading as='h3' size='lg' marginBottom={8}>Bridge Calculator</Heading>
       <Box as='form' name='bridgeCost' onSubmit={onSubmit} onReset={onReset} marginBottom={8}>
         <SimpleGrid columns={2} gap={4} marginBottom={4}>
@@ -92,7 +106,6 @@ export default function Bridges() {
           </CardBody>
         </Card>
       )}
-      <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
     </Box>
   )
 }

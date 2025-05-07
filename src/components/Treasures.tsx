@@ -34,7 +34,10 @@ import {
   Tr,
   useDisclosure,
   SimpleGrid,
-  Select
+  Select,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
 import { useCallback, useRef, useState } from 'react'
@@ -121,6 +124,18 @@ export default function Treasures() {
   return (
     <SimpleGrid columns={2} spacing={4} minChildWidth={650}>
       <Box padding={8}>
+        <Breadcrumb size='sm' marginBottom={4}>
+          <BreadcrumbItem>
+            <BreadcrumbLink as={ReactRouterLink} to='/'>
+              Home
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem isCurrentPage>
+            <BreadcrumbLink as={ReactRouterLink} to='/treasures'>
+              Treasures
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
         <Heading as='h3' size='lg' marginBottom={8}>Treasure Hunter</Heading>
         <Box marginBottom={4}>
           <Text marginBottom={2}>{`This tool is meant to help you on your treasure hunts 
@@ -146,7 +161,7 @@ export default function Treasures() {
             </Select>
           </FormControl>
           <FormControl isRequired>
-            <FormLabel>Current Location (x, y)</FormLabel>
+            <FormLabel>Current Position (x, y)</FormLabel>
             <PointInput
               point={currPosition}
               onChange={updateCurrPosition} />
@@ -159,7 +174,9 @@ export default function Treasures() {
             isDisabled={!currPosition || !server}>
           Add Map
           </Button>
-          <DeleteAllButton onDeleteAll={deleteAll} isDisabled={maps.length === 0}/>
+          <DeleteAllButton
+            onDeleteAll={deleteAll}
+            count={maps.length}/>
         </Flex>
         <MapModal
           isOpen={isAddOpen}
@@ -258,7 +275,6 @@ export default function Treasures() {
             </Tbody>
           </Table>
         </TableContainer>
-        <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
       </Box>
       <Box padding={8}>
         <Minimap
@@ -387,9 +403,9 @@ function ClaimButton({ onFindTreasure, onFindMap }: {
   )
 }
 
-function DeleteAllButton({ isDisabled, onDeleteAll }: {
-  isDisabled: boolean,
-  onDeleteAll: () => void
+function DeleteAllButton({ onDeleteAll, count }: {
+  onDeleteAll: () => void,
+  count: number
 }) {
   return (
     <Popover>
@@ -398,8 +414,8 @@ function DeleteAllButton({ isDisabled, onDeleteAll }: {
           <PopoverTrigger>
             <Button
               colorScheme='red'
-              isDisabled={isDisabled}>
-                Delete All
+              isDisabled={count === 0}>
+                Delete All ({count})
             </Button>
           </PopoverTrigger>
           <PopoverContent>
@@ -488,8 +504,8 @@ function Minimap({ position, maps, hoveredIndex, onHover }: {
         )}
         <rect x={10} y={10} width={120} height={50} fill="white" stroke="#B0BEC5" strokeWidth="1" />
         <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
-        <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Location</text>
-        <text x={15} y={50} fontSize="10" fill="#3182CE">- Map Position</text>
+        <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Position</text>
+        <text x={15} y={50} fontSize="10" fill="#3182CE">- Treasure Position</text>
       </svg>
     </Box>
   )

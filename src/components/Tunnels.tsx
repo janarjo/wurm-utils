@@ -1,7 +1,6 @@
 import {
   Box,
   Heading,
-  Link as ChakraLink,
   SimpleGrid,
   FormControl,
   FormLabel,
@@ -10,6 +9,9 @@ import {
   Card,
   CardHeader,
   CardBody,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
 import LengthInput from './common/LengthInput'
@@ -36,6 +38,18 @@ export default function Tunnels() {
 
   return (
     <Box padding={8} maxWidth={600}>
+      <Breadcrumb size='sm' marginBottom={4}>
+        <BreadcrumbItem>
+          <BreadcrumbLink as={ReactRouterLink} to='/'>
+            Home
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink as={ReactRouterLink} to='/tunnels'>
+            Tunnels
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
       <Heading as='h3' size='lg' marginBottom={8}>Tunnel Calculator</Heading>
       <Box marginBottom={4}>
         <Text marginBottom={2}>{`
@@ -94,7 +108,6 @@ export default function Tunnels() {
           </CardBody>
         </Card>
       )}
-      <ChakraLink color='teal' as={ReactRouterLink} to='/'>Back to Main Page</ChakraLink>
     </Box>
   )
 }

@@ -1,4 +1,4 @@
-import { defineConfig, globalIgnores } from 'eslint/config'
+import { defineConfig } from 'eslint/config'
 import { fixupConfigRules } from '@eslint/compat'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import globals from 'globals'
@@ -16,41 +16,47 @@ const compat = new FlatCompat({
   allConfig: js.configs.all
 })
 
-export default defineConfig([globalIgnores(['**/dist']), {
-  extends: fixupConfigRules(compat.extends(
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended',
-  )),
-
-  plugins: {
-    'react-refresh': reactRefresh,
+export default defineConfig(
+  {
+    ignores: ['**/node_modules/*', '**/dist/*']
   },
+  {
+    rules: {
+      indent: ['error', 2],
+      'max-len': ['error', {
+        code: 100,
+        ignoreComments: true,
+      }],
+      'linebreak-style': ['error', 'unix'],
+      quotes: ['error', 'single'],
+      semi: ['error', 'never'],
+      'no-trailing-spaces': 'error',
+    },
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    extends: fixupConfigRules(compat.extends(
+      'eslint:recommended',
+      'plugin:@typescript-eslint/recommended',
+      'plugin:react-hooks/recommended',
+    )),
 
-  languageOptions: {
-    globals: {
-      ...globals.browser,
+    plugins: {
+      'react-refresh': reactRefresh,
     },
 
-    parser: tsParser,
-  },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
 
-  rules: {
-    indent: ['error', 2],
+      parser: tsParser,
+    },
 
-    'max-len': ['error', {
-      code: 100,
-      ignoreComments: true,
-    }],
-
-    'linebreak-style': ['error', 'unix'],
-    quotes: ['error', 'single'],
-    semi: ['error', 'never'],
-    'no-trailing-spaces': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
-
-    'react-refresh/only-export-components': ['warn', {
-      allowConstantExport: true,
-    }],
-  },
-}])
+    rules: {
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-refresh/only-export-components': ['warn', {
+        allowConstantExport: true,
+      }],
+    },
+  })
