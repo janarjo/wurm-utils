@@ -24,6 +24,49 @@ export const MAP_HOSTS = {
   [Server.HARMONY]: 'https://harmony.yaga.host',
 }
 
+export const MAP_DATA = {
+  [Server.CELEBRATION]: {
+    imageName: 'Celebration-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.DELIVERANCE]: {
+    imageName: 'Deliverance-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.EXODUS]: {
+    imageName: 'Exodus-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.INDEPENDENCE]: {
+    imageName: 'Independence-terrain-20250226',
+    mapSize: [4096, 4096],
+  },
+  [Server.PRISTINE]: {
+    imageName: 'Pristine-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.RELEASE]: {
+    imageName: 'Release-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.XANADU]: {
+    imageName: 'Xanadu-terrain-20250226',
+    mapSize: [8192, 8192],
+  },
+  [Server.CADENCE]: {
+    imageName: 'Cadence-terrain-20250226',
+    mapSize: [4096, 4096],
+  },
+  [Server.MELODY]: {
+    imageName: 'Melody-terrain-20250226',
+    mapSize: [2048, 2048],
+  },
+  [Server.HARMONY]: {
+    imageName: 'Harmony-terrain-20250226',
+    mapSize: [4096, 4096],
+  },
+}
+
 export type Point = readonly [number, number]
 export type Line = readonly [Point, Point]
 

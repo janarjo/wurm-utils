@@ -41,13 +41,14 @@ import {
   Radio,
 } from '@chakra-ui/react'
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { TreasureMap } from '../util/Treasures'
 import { MAP_HOSTS, Point, Server } from '../Domain'
 import { LocalStorageKey, load, remove, save } from '../Storage'
 import PointInput from './common/PointInput'
 import NumberInput from './common/NumberInput'
 import { calcRealDistance } from '../util/Common'
+import { Map } from './map/Map'
 
 export default function Treasures() {
   const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure()
@@ -296,12 +297,13 @@ export default function Treasures() {
         </TableContainer>
       </Box>
       <Box padding={8}>
-        <Minimap
+        <Map
           position={currPosition}
           maps={maps}
           hoveredIndex={hoveredIndex}
           targetIndex={targetIndex}
           onHover={setHoveredIndex}
+          server={server}
         />
       </Box>
     </SimpleGrid>
@@ -461,77 +463,5 @@ function DeleteAllButton({ onDeleteAll, count }: {
         </>
       )}
     </Popover>
-  )
-}
-
-function Minimap({ position, maps, hoveredIndex, onHover, targetIndex }: {
-  position: Point | undefined
-  maps: TreasureMap[]
-  hoveredIndex?: number
-  onHover: (index?: number) => void
-  targetIndex?: number
-}) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [width, height]  = [600, 600]
-
-  const boundingPoints = [position, ...maps.map(t => t.position)].filter(Boolean) as Point[]
-  const minX = Math.min(...boundingPoints.map(point => point[0])) - 300
-  const maxX = Math.max(...boundingPoints.map(point => point[0])) + 300
-  const minY = Math.min(...boundingPoints.map(point => point[1])) - 300
-  const maxY = Math.max(...boundingPoints.map(point => point[1])) + 300
-
-  const scale = Math.min(width / (maxX - minX), height / (maxY - minY))
-  const translate = (point: Point) => [
-    (point[0] - minX) * scale,
-    (point[1] - minY) * scale
-  ]
-
-  return (
-    <Box ref={containerRef} width='100%' height='100%' position='relative'>
-      <svg width={width} height={height} style={{
-        background: '#E3F2FD',
-        borderRadius: 16,
-        border: '2px solid #e2e8f0'
-      }}>
-        {[1 / 5, 2 / 5, 3 / 5, 4 / 5].map((fraction, i) => (
-          <g key={i} stroke="#90A4AE" strokeWidth="1" opacity="0.4">
-            <line x1={fraction * width} y1="0" x2={fraction * width} y2={height} />
-            <line x1="0" y1={fraction * height} x2={width} y2={fraction * height} />
-          </g>
-        ))}
-        {maps.map(({ position }, index) => {
-          const [x, y] = translate(position)
-          const isHovered = hoveredIndex === index
-          const isTarget = targetIndex === index
-          const color = isTarget ? '#319795' : '#3182CE'
-          return (
-            <g key={position.join()}>
-              <circle
-                cx={x}
-                cy={y}
-                r={6}
-                fill={color}
-                opacity={isHovered ? 0.5 : 1}
-                onMouseEnter={() => onHover(index)}
-                onMouseLeave={() => onHover(undefined)}
-              />
-              <title>{`(${position[0]}, ${position[1]})`}</title>
-            </g>
-          )
-        })}
-        {position && (
-          <circle
-            cx={translate(position)[0]}
-            cy={translate(position)[1]}
-            r={6}
-            fill='#E53E3E'/>
-        )}
-        <rect x={10} y={10} width={120} height={60} fill="white" stroke="#B0BEC5" strokeWidth="1" />
-        <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
-        <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Position</text>
-        <text x={15} y={50} fontSize="10" fill="#3182CE">- All Treasures</text>
-        <text x={15} y={60} fontSize="10" fill="#319795">- Target Treasure</text>
-      </svg>
-    </Box>
   )
 }

@@ -4,4 +4,7 @@ export default {
     '^.+\\.tsx?$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  moduleNameMapper: {
+    '^@map/(.*)$': '<rootDir>/src/components/map/$1',
+  },
 }

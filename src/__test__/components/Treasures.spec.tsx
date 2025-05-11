@@ -6,6 +6,10 @@ import { Server } from '../../Domain'
 import { LocalStorageKey } from '../../Storage'
 import { TreasureMap } from '../../util/Treasures'
 
+jest.mock('@map/MapLoader', () => ({
+  getMapImage: jest.fn(() => '/mock/map/path.png')
+}))
+
 describe('Treasures', () => {
   let renderOpts: ReturnType<typeof render>
   beforeEach(() => {
