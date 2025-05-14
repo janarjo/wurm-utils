@@ -63,7 +63,8 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
         }}
       >
         {maps.map(({ position }, index) => {
-          const [x, y] = scale(position)
+          const [x, y] = position
+          const [scaledX, scaledY] = scale(position)
           const isHovered = hoveredIndex === index
           const isTarget = targetIndex === index
           const color = isTarget ? '#319795' : '#3182CE'
@@ -71,8 +72,8 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
           return (
             <g key={position.join()}>
               <circle
-                cx={x}
-                cy={y}
+                cx={scaledX}
+                cy={scaledY}
                 r={6}
                 fill={color}
                 opacity={isHovered ? 0.5 : 1}
@@ -92,6 +93,19 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
             fill="#E53E3E"
           />
         )}
+        <rect
+          x={10}
+          y={10}
+          width={120}
+          height={60}
+          fill="white"
+          opacity={0.9}
+          stroke="#B0BEC5"
+          strokeWidth="1" />
+        <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
+        <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Position</text>
+        <text x={15} y={50} fontSize="10" fill="#3182CE">- All Treasures</text>
+        <text x={15} y={60} fontSize="10" fill="#319795">- Target Treasure</text>
       </svg>
     </Box>
   )
