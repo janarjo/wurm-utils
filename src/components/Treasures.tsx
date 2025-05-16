@@ -172,7 +172,7 @@ export default function Treasures() {
             </Select>
           </FormControl>
           <FormControl isRequired>
-            <FormLabel>Current Position (x, y)</FormLabel>
+            <FormLabel>Last Position (x, y)</FormLabel>
             <PointInput
               point={currPosition}
               onChange={updateCurrPosition} />

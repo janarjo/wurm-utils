@@ -134,7 +134,6 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
         width: displayWidth,
         height: displayHeight,
         overflow: 'hidden',
-        cursor: isDragging ? 'grabbing' : 'grab',
         position: 'relative',
         contain: 'strict',
         border: '2px solid #3182CE',
@@ -258,7 +257,7 @@ const MapOverlay = memo(({
       stroke="#B0BEC5"
       strokeWidth="1" />
     <text x={15} y={25} fontSize="12" fill="#1A202C">Legend:</text>
-    <text x={15} y={40} fontSize="10" fill="#E53E3E">- Current Position</text>
+    <text x={15} y={40} fontSize="10" fill="#E53E3E">- Last Position</text>
     <text x={15} y={50} fontSize="10" fill="#3182CE">- All Treasures</text>
     <text x={15} y={60} fontSize="10" fill="#319795">- Target Treasure</text>
   </svg>
