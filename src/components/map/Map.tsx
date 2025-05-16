@@ -12,10 +12,12 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
   onHover: (index?: number) => void;
   targetIndex?: number;
 }) {
-  const [imageLoaded, setImageLoaded] = useState(false)
   const { imageName, mapSize } = MAP_DATA[server] || {}
   const imagePath = getMapImage(imageName)
   const [mapWidth, mapHeight] = mapSize
+  const [currentImageSrc, setCurrentImageSrc] = useState(imagePath)
+  const [isLoadingImage, setIsLoadingImage] = useState(false)
+
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState([0, 0] as [number, number])
   const [isDragging, setIsDragging] = useState(false)
@@ -47,18 +49,40 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
     ] as [number, number]
   }
 
-  const handleLoad = () => {
-    setZoom(1)
-    setOffset([0, 0])
-    setImageLoaded(true)
-  }
-
+  // Preload the new image when the image path changes
   useEffect(() => {
-    setImageLoaded(false)
-  }, [imagePath])
+    if (imagePath === currentImageSrc && !isLoadingImage) return
+
+    setIsLoadingImage(true)
+
+    const handleImageLoad = () => {
+      setCurrentImageSrc(imagePath)
+      setZoom(1)
+      setOffset([0, 0])
+
+      // Add a small delay before fading in to ensure smooth transition
+      setTimeout(() => {
+        setIsLoadingImage(false)
+      }, 100)
+    }
+
+    const img = new Image()
+    img.src = imagePath
+    img.decode()
+      .then(handleImageLoad)
+      .catch(() => {
+        console.warn('Image decode() failed, falling back to onload')
+        img.onload = handleImageLoad
+        img.onerror = () => {
+          console.error('Failed to load image:', imagePath)
+          setIsLoadingImage(false)
+        }
+      })
+
+  }, [currentImageSrc, imagePath, isLoadingImage])
 
   const handleWheel = (e: React.WheelEvent) => {
-    if (!imageLoaded) return
+    if (isLoadingImage) return
 
     const rect = e.currentTarget.getBoundingClientRect()
     const mouseX = e.clientX - rect.left
@@ -87,7 +111,7 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!imageLoaded || !isDragging || !lastMousePos) return
+    if (isLoadingImage || !isDragging || !lastMousePos) return
     const dx = e.clientX - lastMousePos[0]
     const dy = e.clientY - lastMousePos[1]
     setOffset(([ox, oy]) => clampOffset([ox + dx, oy + dy], zoom))
@@ -112,7 +136,11 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
         overflow: 'hidden',
         cursor: isDragging ? 'grabbing' : 'grab',
         position: 'relative',
-        contain: 'strict'
+        contain: 'strict',
+        border: '2px solid #3182CE',
+        borderRadius: 8,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        backgroundColor: '#f9fafb',
       }}>
       <Box
         position="absolute"
@@ -129,7 +157,7 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
           perspective: 1000,
         }}
       >
-        {!imageLoaded && (
+        {isLoadingImage && (
           <Flex
             position="absolute"
             top={0}
@@ -144,13 +172,11 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
             <Spinner size="lg" color="blue.500" />
           </Flex>)}
         <img
-          src={imagePath}
+          src={currentImageSrc}
           alt={`Map of ${server}`}
           width={displayWidth}
           height={displayHeight}
-          onLoad={handleLoad}
           fetchPriority='high'
-          decoding='async'
           style={{
             position: 'absolute',
             top: 0,
