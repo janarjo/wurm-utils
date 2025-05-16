@@ -1,7 +1,7 @@
 import { Box, Flex, Spinner } from '@chakra-ui/react'
 import { MAP_DATA, Point, Server } from '../../Domain'
 import { TreasureMap } from '../../util/Treasures'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { getMapImage } from './MapLoader'
 
 export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex }: {
@@ -22,11 +22,19 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
   const [lastMousePos, setLastMousePos] = useState<[number, number] | undefined>(undefined)
   const [displayWidth, displayHeight] = [600, 600]
 
-  // Calculate the display width and height based on the zoom level and panning offset
+  // Transform the points based on the map size, display size, zoom level, and offset
   const transformPoint = useCallback(([x, y]: Point) => [
     (x * displayWidth / mapWidth) * zoom + offset[0],
     (y * displayHeight / mapHeight) * zoom + offset[1]
   ] as [number, number], [displayWidth, displayHeight, mapWidth, mapHeight, zoom, offset])
+
+  const transformedPoints = useMemo(() => maps.map(({ position }) =>
+    transformPoint(position)), [maps, transformPoint])
+
+  const transformedPosition = useMemo(() => {
+    if (!position) return undefined
+    return transformPoint(position)
+  }, [position, transformPoint])
 
   // Clamp the offset to ensure the image stays within the bounds of the display
   const clampOffset = ([ox, oy]: [number, number], zoom: number) => {
@@ -50,16 +58,15 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
   }, [imagePath])
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
     if (!imageLoaded) return
 
     const rect = e.currentTarget.getBoundingClientRect()
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
 
-    // clamp zoom between 1x and 5x
-    const zoomDelta = -e.deltaY * 0.001
-    const newZoom = Math.min(Math.max(zoom + zoomDelta, 1), 10)
+    // clamp zoom between 1x and 30x
+    const zoomDelta = -e.deltaY * 0.01
+    const newZoom = Math.min(Math.max(zoom + zoomDelta, 1), 30)
     if (newZoom === zoom) return
 
     // Calculate mouse position relative to the scaled map
@@ -154,32 +161,29 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
       </Box>
       <MapOverlay
         dimensions={[displayWidth, displayHeight]}
-        maps={maps}
-        position={position}
+        points={transformedPoints}
+        currPosition={transformedPosition}
         hoveredIndex={hoveredIndex}
         onHover={onHover}
-        targetIndex={targetIndex}
-        transformPoint={transformPoint} />
+        targetIndex={targetIndex} />
     </div>
   )
 }
 
 const MapOverlay = memo(({
   dimensions,
-  maps,
-  position,
+  points,
+  currPosition,
   hoveredIndex,
   onHover,
-  targetIndex,
-  transformPoint
+  targetIndex
 }: {
   dimensions: [number, number]
-  maps: TreasureMap[]
-  position: Point | undefined
+  points: Point[]
+  currPosition: Point | undefined
   hoveredIndex?: number
   onHover: (index?: number) => void
   targetIndex?: number
-  transformPoint: (point: Point) => [number, number]
 }) => (
   <svg
     width={dimensions[0]}
@@ -191,18 +195,16 @@ const MapOverlay = memo(({
       pointerEvents: 'none',
     }}
   >
-    {maps.map(({ position }, index) => {
-      const [x, y] = position
-      const [tx, ty] = transformPoint(position)
+    {points.map(([x, y], index) => {
       const isHovered = hoveredIndex === index
       const isTarget = targetIndex === index
       const color = isTarget ? '#319795' : '#3182CE'
 
       return (
-        <g key={position.join()}>
+        <g key={index}>
           <circle
-            cx={tx}
-            cy={ty}
+            cx={x}
+            cy={y}
             r={6}
             fill={color}
             opacity={isHovered ? 0.5 : 1}
@@ -213,10 +215,10 @@ const MapOverlay = memo(({
         </g>
       )
     })}
-    {position && (
+    {currPosition && (
       <circle
-        cx={transformPoint(position)[0]}
-        cy={transformPoint(position)[1]}
+        cx={currPosition[0]}
+        cy={currPosition[1]}
         r={6}
         fill="#E53E3E" />
     )}
