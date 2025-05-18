@@ -42,9 +42,9 @@ jobs:
 
     - name: Merge develop into master
       run: |
-        git checkout master
-        git reset --hard origin/master
+        git reset --hard
         git clean -ffdx
+        git checkout master
         git merge develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
