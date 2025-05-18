@@ -32,18 +32,26 @@ jobs:
     - name: Fetch all branches
       run: git fetch --all
 
-    - name: Create and checkout local develop
-      run: git checkout -B develop origin/develop
-
-    - name: Clean working directory
+    # Clean master checkout first 
+    - name: Clean working directory on master
       run: |
         git reset --hard
         git clean -fd
 
-    - name: Merge develop into master
+    # First checkout develop in a clean state
+    - name: Create and checkout local develop
       run: |
-        git checkout master
-        git merge develop --no-ff || git merge --abort
+        git checkout -B develop origin/develop
+        git reset --hard origin/develop
+        git clean -fd
+
+    # Then go back to master (which should already be clean)
+    - name: Switch back to master
+      run: git checkout master
+
+    # Now merge develop into master
+    - name: Merge develop into master
+      run: git merge develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
       run: |
