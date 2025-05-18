@@ -35,10 +35,10 @@ jobs:
     # Start with a fresh check out of develop branch
     - name: Checkout develop and clean
       run: |
-        git fetch origin
-        git checkout develop
         git reset --hard origin/develop
         git clean -ffdx
+        git fetch origin
+        git checkout develop
 
     - name: Merge develop into master
       run: |
@@ -48,9 +48,7 @@ jobs:
         git merge develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
-      run: |
-        git status && git diff
-        npm version $RELEASE_VERSION
+      run: npm version $RELEASE_VERSION
 
     - name: Push changes to master
       run: git push origin master --follow-tags
