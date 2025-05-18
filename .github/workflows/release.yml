@@ -32,22 +32,19 @@ jobs:
     - name: Fetch all branches
       run: git fetch --all
 
-    # Clean master checkout first 
-    - name: Clean working directory on master
+    # Start with a fresh check out of develop branch
+    - name: Fresh checkout of develop
       run: |
-        git reset --hard
-        git clean -fd
-
-    # First checkout develop in a clean state
-    - name: Create and checkout local develop
-      run: |
-        git checkout -B develop origin/develop
+        git checkout -B develop origin/develop --force
         git reset --hard origin/develop
-        git clean -fd
+        git clean -ffdx
 
-    # Then go back to master (which should already be clean)
-    - name: Switch back to master
-      run: git checkout master
+    # This should now be safe after aggressive cleaning
+    - name: Return to master branch
+      run: |
+        git checkout master --force
+        git reset --hard origin/master
+        git clean -ffdx
 
     # Now merge develop into master
     - name: Merge develop into master
