@@ -33,25 +33,23 @@ jobs:
       run: git fetch --all
 
     # Start with a fresh check out of develop branch
-    - name: Fresh checkout of develop
+    - name: Checkout develop and clean
       run: |
-        git checkout -B develop origin/develop --force
+        git fetch origin
+        git checkout develop
         git reset --hard origin/develop
         git clean -ffdx
 
-    # This should now be safe after aggressive cleaning
-    - name: Return to master branch
+    - name: Merge develop into master
       run: |
-        git checkout master --force
+        git checkout master
         git reset --hard origin/master
         git clean -ffdx
-
-    # Now merge develop into master
-    - name: Merge develop into master
-      run: git merge develop --no-ff || git merge --abort
+        git merge develop --no-ff || git merge --abort
 
     - name: Bump version in package.json
       run: |
+        git status && git diff
         npm version $RELEASE_VERSION
 
     - name: Push changes to master
