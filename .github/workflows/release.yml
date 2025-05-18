@@ -35,6 +35,11 @@ jobs:
     - name: Checkout and create local develop
       run: git checkout -b develop origin/develop
 
+    - name: Clean working directory
+      run: |
+        git reset --hard
+        git clean -fd
+
     - name: Merge develop into master
       run: |
         git checkout master
