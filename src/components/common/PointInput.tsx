@@ -4,6 +4,7 @@ import { Point } from '../../Domain'
 import NumberInput from './NumberInput'
 
 export interface PointInputProps extends ChakraProps {
+    id?: string,
     point?: Point,
     onAdd?: (point: Point) => void,
     onChange: (point: Point) => void,
@@ -11,6 +12,7 @@ export interface PointInputProps extends ChakraProps {
 }
 
 export default function PointInput({
+  id,
   point,
   onAdd,
   onChange,
@@ -51,6 +53,7 @@ export default function PointInput({
   return (
     <SimpleGrid {...rest} columns={onAdd ? 3 : 2} gap={4}>
       <NumberInput
+        id={`${id}-x`}
         name='x'
         placeholder='x'
         required
@@ -60,6 +63,7 @@ export default function PointInput({
         onPaste={onPaste}
         disabled={disabled}/>
       <NumberInput
+        id={`${id}-y`}
         name='y'
         placeholder='y'
         required

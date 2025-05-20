@@ -9,6 +9,7 @@ import PointInput from './PointInput'
 import { useState } from 'react'
 
 export interface PointInputProps {
+  id?: string,
   name: string,
   points: Point[],
   initialPoint?: Point,
@@ -18,6 +19,7 @@ export interface PointInputProps {
 }
 
 export default function PointsInput({
+  id,
   name,
   points,
   onAdd,
@@ -28,6 +30,7 @@ export default function PointsInput({
   return (
     <>
       <PointInput
+        id={id}
         point={point}
         onChange={setPoint}
         onAdd={onAdd}

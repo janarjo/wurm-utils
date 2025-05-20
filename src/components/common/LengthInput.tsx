@@ -21,7 +21,7 @@ export interface LengthInputProps extends NumberInputProps {
   maxPoints?: number
 }
 
-export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInputProps) {
+export default function LengthInput({ id, maxPoints, onChange, ...rest }: LengthInputProps) {
   const [ points, setPoints ] = useState<Point[]>([])
   const [ pointKey, setPointKey ] = useState<number>(0)
 
@@ -66,6 +66,7 @@ export default function LengthInput({ maxPoints, onChange, ...rest }: LengthInpu
               </PopoverHeader>
               <PopoverBody>
                 <PointsInput
+                  id={`${id}-points`}
                   name='points'
                   points={points}
                   onAdd={onAdd}

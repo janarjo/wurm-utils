@@ -162,8 +162,8 @@ export default function Treasures() {
         </Box>
         <SimpleGrid columns={2} spacing={4} marginBottom={4}>
           <FormControl isRequired>
-            <FormLabel>Server</FormLabel>
-            <Select value={server} onChange={updateServer}>
+            <FormLabel htmlFor='server'>Server</FormLabel>
+            <Select id='server' value={server} onChange={updateServer}>
               {Object.keys(MAP_HOSTS).map(server => (
                 <option key={server} value={server}>
                   {server.charAt(0) + server.slice(1).toLowerCase()}
@@ -172,8 +172,9 @@ export default function Treasures() {
             </Select>
           </FormControl>
           <FormControl isRequired>
-            <FormLabel>Last Position (x, y)</FormLabel>
+            <FormLabel htmlFor='last-position-x'>Last Position (x, y)</FormLabel>
             <PointInput
+              id='last-position'
               point={currPosition}
               onChange={updateCurrPosition} />
           </FormControl>
@@ -345,8 +346,9 @@ function MapModal({ isOpen, map: editMap, onSave, onClose }: {
         <Box as='form' onSubmit={onSubmit}>
           <ModalBody>
             <FormControl marginBottom={4} isRequired>
-              <FormLabel>Position (x, y)</FormLabel>
+              <FormLabel htmlFor='position-x'>Position (x, y)</FormLabel>
               <PointInput
+                id='position'
                 point={position}
                 onChange={(point) => onFieldChange('position', point)}/>
             </FormControl>
