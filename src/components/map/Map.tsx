@@ -50,7 +50,7 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
       label: `(${position[0]}, ${position[1]})`,
       opacity: hoveredIndex === index ? 0.5 : 1,
       color: targetIndex === index ? '#319795' : '#3182CE',
-      onMouseEnter: (index: number) => onHover(index),
+      onMouseEnter: () => onHover(index),
       onMouseLeave: () => onHover(undefined),
     }))),
   ] as OverlayMarker[], [hoveredIndex, maps, onHover, position, targetIndex, transformPosition])
@@ -105,10 +105,15 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
 
   }, [currentImageSrc, imagePath, isLoadingImage])
 
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault()
+
     if (isLoadingImage) return
 
-    const rect = e.currentTarget.getBoundingClientRect()
+    const container = mapContainerRef.current
+    if (!container) return
+
+    const rect = container.getBoundingClientRect()
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
 
@@ -127,7 +132,7 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
 
     setZoom(newZoom)
     setOffset(clampOffset([newOffsetX, newOffsetY], newZoom))
-  }
+  }, [clampOffset, isLoadingImage, offset, zoom])
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true)
@@ -146,6 +151,17 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
     setIsDragging(false)
     setLastMousePos(undefined)
   }
+
+  // Attach the wheel event listener to the map container to prevent default scrolling
+  useEffect(() => {
+    const container = mapContainerRef.current
+    if (!container) return
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+    }
+  }, [handleWheel])
 
   // Handle window resize events to adjust map dimensions
   useEffect(() => {
@@ -192,7 +208,6 @@ export function Map({ position, maps, server, hoveredIndex, onHover, targetIndex
     <ExpandableBox isExpanded={isFullScreen} onClose={handleCollapse}>
       <div
         ref={mapContainerRef}
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -285,8 +300,8 @@ export interface OverlayMarker {
   label: string
   color: string
   opacity?: number
-  onMouseEnter?: (index: number) => void
-  onMouseLeave?: (index: number) => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
 }
 
 const MapOverlay = memo(({ width, height, markers }: {
@@ -312,8 +327,8 @@ const MapOverlay = memo(({ width, height, markers }: {
           r={6}
           fill={point.color}
           opacity={point.opacity}
-          onMouseEnter={() => point.onMouseEnter?.(index)}
-          onMouseLeave={() => point.onMouseLeave?.(index)}
+          onMouseEnter={() => point.onMouseEnter?.()}
+          onMouseLeave={() => point.onMouseLeave?.()}
           pointerEvents="auto" />
         <title>{point.label}</title>
       </g>
